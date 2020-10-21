@@ -82,9 +82,14 @@ def grad_J(c ,Y, th, d_0, d_k):
     
     I =  Y.shape[1]
     
-    dJ = {}
     Z, Upsilon, dUpsilon, dsigma = F_tilde(Y, th, d_0, d_k)    
     
+    # Equation 6
+    J = 0.5*np.linalg.norm(Upsilon - c)**2
+
+    # Initializing gradient
+    dJ = {}
+
     # Equation (8)  
     dJ["mu"]   =  dUpsilon.T@(Upsilon - c)
         
@@ -95,14 +100,17 @@ def grad_J(c ,Y, th, d_0, d_k):
     P = np.zeros(( K+1, d_k, I))
     P[-1] = th["w"] @ ((Upsilon - c)* dUpsilon).T
         
+    # Equation 12
     for k in range(K-1,-1,-1):
         P[k] = P[k+1] + h*th["W"+str(k)].T @ (dsigma[k] * P[k+1])  
-        
+    
+    # Equation 13
     for k in range(0, K):
         dJ["W"+str(k)] = h*(P[k+1] * dsigma[k])@(Z[k]).T
         dJ["b"+str(k)] = h*(P[k+1] * dsigma[k])@(Z[k]).T
-                
-    return dJ
+    
+    
+    return J, dJ
 
 def train(c, Y, th, d_0, d_k):
     
@@ -119,7 +127,8 @@ def train(c, Y, th, d_0, d_k):
     for i in range(1):
     #while itr <= maxitr and err > tol:
             
-        dJ_1 = grad_J(c, Y, th, d_0, d_k)
+        J, dJ = grad_J(c, Y, th, d_0, d_k)
+        
         
         
         
