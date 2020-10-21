@@ -45,44 +45,75 @@ def Phi_k(Z_k, Th_k):
     return Z_k +  sigma( Z_k@Th_k["W"] + Th_k["b"] )
     
 """
-Z_k = (d, N)
-w = (d, 1)
-mu = (1, 1)
+Input:
+    Z_k = (d, N)
+    w = (d, 1)
+    mu = (1, 1)
 
-out: (1xN)
+out: 
+    \eta( Z_k^T w  + \mu ) = (I, 1) 
 """
-def F(Z_k, Th_K, derivative=False):
-    return eta( Z_k.T @ Th_K["w"] + Th_K["mu"], derivative )
+def F_tilde(Z_k, Th_K):
+    Z = {}
+    
+    Z_K =  Z_k
+    Z["K"] = Z_K
+    
+    eta_    = eta( Z_K.T@Th_K["w"]  + Th_K["mu"], derivative = False )
+    deta_ = eta( Z_K.T@Th_K["w"]  + Th_K["mu"], derivative = True )
+    
+    # Maybe return dZ instead of deta and eta?
+    return eta_, deta_,  Z
 
 
+"""
+Input 
+    Y: (d, I)
+    Th: weights.
+    h: stepsize
+    K: number of layers
+
+Output:
+    Upsilon: (I, 1)    
+"""
 def forward_propogation(Y, Th, h, K):
-    upsilon = F(Y, Th["Th"+str(K)])    
-    print("ups", upsilon.shape,
-          "Y", Y.shape)
-    return upsilon
-
+    upsilon, Z = F_tilde(Y, Th["Th"+str(K)])    
+    return upsilon, Z
 
 
 def train(c, Y, Th, h, K):
-    upsilon = forward_propogation(Y, Th, h, K)
     
-    print(F(Y, Th["Th"+str(K)], derivative=(True)).shape,
-          "\n",
-          (upsilon - c).shape, 
-          "\n",
-          Y.shape)
     
-    dJ_mu   =  F(Y, Th["Th"+str(K)], derivative=(True)).T @(upsilon - c)
-    
-    Y@(upsilon - c) 
+    tau = 0.5
+    for i in range(10000):     
+        
+        
+        F_t, dF_t, Z = F_tilde(Y, Th["Th"+str(K)] )
+
+        # Equation (8)  
+        upsilon = F_t
+        dJ_mu   =  F_t.T@(upsilon - c)
+        
+        # Equation (9)
+        dJ_w = (upsilon - c)* dF_t
+        dJ_w = Z["K"]@dJ_w
+        
+        
+        Th["Th"+str(K)]["w"] -= tau*dJ_w
+        Th["Th"+str(K)]["mu"] -= tau*dJ_mu
+        print(np.linalg.norm(upsilon - c) )
     
     #dJ_w   =  Y@(upsilon - c) @( F(Y, Th["Th"+str(K)], derivative=True))
     
+    #print(J_mu)
+    #print( "f",  f.shape,"c" ,upsilon.shape)
+    #Y@(upsilon - c) 
     return upsilon
 
     
 
 def single_neuron():
+    # (dxN)
     Y = np.array([
         [1,1,1],        
         [1,1,2],        
@@ -90,18 +121,14 @@ def single_neuron():
         [1,2,1]        
         ]).T
     
-    c = np.array([
-        [1],        
-        [1],        
-        [1],        
-        [1]  
-        ])
+    # (Nx1)
+    c = np.array([[1,1,1,1]]).T
     
-
+    
     d_0 = 3
     d_k = 2    
-    K = 1
-    h= 1
+    K   = 1
+    h   = 1
 
 
     Th = initialize_weights(d_0, d_k, K)
@@ -109,6 +136,8 @@ def single_neuron():
     train(c, Y, Th, h, K)
     
     
-    
+
+
+
     
 single_neuron()
