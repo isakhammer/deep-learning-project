@@ -17,8 +17,8 @@ def initialize_weights(d_0, d_k, K):
         th["W"+str(0)] = 2*np.random.random((d_k, d_0 )) - 1
         th["b"+str(0)] = np.random.random((d_k, 1))
         
-        for i in range(1,K+1):
-            th["W"+str(i)] = 2*np.random.random((d_k, d_k )) - 1
+        for i in range(1, K):
+            th["W"+str(i)] = 2*np.random.random(( d_k, d_k)) - 1
             th["b"+str(i)] = np.random.random((d_k, 1))
             
         th["w"] = 2*np.random.random((d_k, 1 )) - 1
