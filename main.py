@@ -5,8 +5,28 @@ Created on Wed Oct 21 17:27:15 2020
 
 @author: isakh
 """
-
 import numpy as np
+import os
+
+def import_batches():
+    n_batches = 49
+    
+    data_prefix = "datalist_batch_"
+    data_path = os.path.join(os.path.dirname(__file__), "project_2_trajectories")
+    
+    # get current path
+    
+    batches = {}
+    
+    for i in range(n_batches):
+        # assemble track import path
+        batch_path = os.path.join(data_path, data_prefix + str(i) + ".csv")
+        batch = np.loadtxt(batch_path, delimiter=',', skiprows=1)
+        batches[i] = batch
+
+    return batches
+    
+
 K = 5
 h = 1/2
 
@@ -139,7 +159,8 @@ def train(c, Y, th, d_0, d_k):
             
     return th
         
-        
+
+    
 def main():
     # (dxI)
     Y = np.array([
@@ -152,7 +173,6 @@ def main():
     # (Nx1)
     c = np.array([[1,1,1,1]]).T
     
-    
     d_0 = Y.shape[0]
     d_k = d_0    
 
@@ -161,8 +181,9 @@ def main():
     train(c, Y, th, d_0, d_k)
     Z, Upsilon, dUpsilon, dsigma =  F_tilde(Y, th, d_0, d_k) 
     print("True ", c.T ," Estimated " ,  Upsilon.T )
-   
+
+import_data()
     
-main()
+#main()
     
     
