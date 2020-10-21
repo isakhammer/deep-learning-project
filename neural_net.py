@@ -19,13 +19,11 @@ def initialize_weights(d_0, d_k, K):
             Th["Th"+str(i)]["W"] = 2*np.random.random((d_k, d_k )) - 1
             Th["Th"+str(i)]["b"] = np.random.random((1, d_k))
             
-        Th["Th"+str(K)] = {}
-        Th["Th"+str(K)]["w"] = 2*np.random.random((d_k, 1 )) - 1
-        Th["Th"+str(K)]["mu"] = np.random.random((1, 1))
+        Th["w"] = 2*np.random.random((d_k, 1 )) - 1
+        Th["mu"] = np.random.random((1, 1))
     else:
-        Th["Th"+str(K)] = {}
-        Th["Th"+str(K)]["w"] = 2*np.random.random((d_0, 1 )) - 1
-        Th["Th"+str(K)]["mu"] = np.random.random((1, 1))
+        Th["w"] = 2*np.random.random((d_0, 1 )) - 1
+        Th["mu"] = np.random.random((1, 1))
     
     return Th
 
@@ -53,14 +51,14 @@ Input:
 out: 
     \eta( Z_k^T w  + \mu ) = (I, 1) 
 """
-def F_tilde(Z_k, Th_K):
+def F_tilde(Z_k, Th):
     Z = {}
     
     Z_K =  Z_k
     Z["K"] = Z_K
     
-    eta_    = eta( Z_K.T@Th_K["w"]  + Th_K["mu"], derivative = False )
-    deta_ = eta( Z_K.T@Th_K["w"]  + Th_K["mu"], derivative = True )
+    eta_    = eta( Z_K.T@Th["w"]  + Th["mu"], derivative = False )
+    deta_ = eta( Z_K.T@Th["w"]  + Th["mu"], derivative = True )
     
     # Maybe return dZ instead of deta and eta?
     return eta_, deta_,  Z
@@ -77,7 +75,7 @@ Output:
     Upsilon: (I, 1)    
 """
 def forward_propogation(Y, Th, h, K):
-    upsilon, Z = F_tilde(Y, Th["Th"+str(K)])    
+    upsilon, Z = F_tilde(Y, Th)    
     return upsilon, Z
 
 
@@ -88,7 +86,7 @@ def train(c, Y, Th, h, K):
     for i in range(10000):     
         
         
-        F_t, dF_t, Z = F_tilde(Y, Th["Th"+str(K)] )
+        F_t, dF_t, Z = F_tilde(Y, Th )
 
         # Equation (8)  
         upsilon = F_t
@@ -99,8 +97,8 @@ def train(c, Y, Th, h, K):
         dJ_w = Z["K"]@dJ_w
         
         
-        Th["Th"+str(K)]["w"] -= tau*dJ_w
-        Th["Th"+str(K)]["mu"] -= tau*dJ_mu
+        Th["w"] -= tau*dJ_w
+        Th["mu"] -= tau*dJ_mu
         print(np.linalg.norm(upsilon - c) )
     
     #dJ_w   =  Y@(upsilon - c) @( F(Y, Th["Th"+str(K)], derivative=True))
