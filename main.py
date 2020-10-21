@@ -77,6 +77,33 @@ def F_tilde(Y, th, d_0, d_k):
     # Maybe return dZ instead of deta and eta?
     return Z, Upsilon, dUpsilon, dsigma
 
+def grad_J(c ,Y, th, d_0, d_k):
+    
+    
+    I =  Y.shape[1]
+    
+    dJ = {}
+    Z, Upsilon, dUpsilon, dsigma = F_tilde(Y, th, d_0, d_k)    
+    
+    # Equation (8)  
+    dJ["mu"]   =  dUpsilon.T@(Upsilon - c)
+        
+    # Equation (9)
+    dJ["w"] = Z[K]@((Upsilon - c)* dUpsilon)
+        
+    # Equation (10)
+    P = np.zeros(( K+1, d_k, I))
+    P[-1] = th["w"] @ ((Upsilon - c)* dUpsilon).T
+        
+    for k in range(K-1,-1,-1):
+        P[k] = P[k+1] + h*th["W"+str(k)].T @ (dsigma[k] * P[k+1])  
+        
+    for k in range(0, K):
+        dJ["W"+str(k)] = h*(P[k+1] * dsigma[k])@(Z[k]).T
+        dJ["b"+str(k)] = h*(P[k+1] * dsigma[k])@(Z[k]).T
+                
+    return dJ
+
 def train(c, Y, th, d_0, d_k):
     
     tau = 0.5
@@ -91,23 +118,11 @@ def train(c, Y, th, d_0, d_k):
     
     for i in range(1):
     #while itr <= maxitr and err > tol:
-     
-        Z, Upsilon, dUpsilon, dsigma = F_tilde(Y, th, d_0, d_k)    
-    
-        # Equation (8)  
-        dJ_mu   =  dUpsilon.T@(Upsilon - c)
+            
+        dJ_1 = grad_J(c, Y, th, d_0, d_k)
         
-        # Equation (9)
-        dJ_w = Z[K]@((Upsilon - c)* dUpsilon)
         
-        # Equation (10)
-        P = np.zeros(( K+1, d_k, I))
-        P[-1] = th["w"] @ ((Upsilon - c)* dUpsilon).T
-        #print((th["w"] @ ((Upsilon - c)* dUpsilon).T).shape)
-        for k in range(K-1,-1,-1):
-            print("w",  k, th["W"+str(k)])
-            P[k] = P[k+1] + h*th["W"+str(k)].T @ (dsigma[k] * P[k+1])  
-            print(P[k])
+        
 def main():
     # (dxI)
     Y = np.array([
@@ -123,7 +138,6 @@ def main():
     
     d_0 = Y.shape[0]
     d_k = d_0    
-
 
     th = initialize_weights(d_0, d_k, K)
    
