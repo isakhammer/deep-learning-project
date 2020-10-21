@@ -68,8 +68,8 @@ def F_tilde(Y, th, d_0, d_k):
         Z[k] = Z[k-1] + h*sigma(Z_hat, False)
         dsigma[k-1] = sigma(Z_hat, True)
     
-    Z_hat = th["W"+str(K)]@Z[K]+th["b"+str(K)]
-    dsigma[K] = sigma(Z_hat, True)
+    #Z_hat = th["W"+str(K)]@Z[K]+th["b"+str(K)]
+    #dsigma[K] = sigma(Z_hat, True)
     
     Upsilon = eta(Z[K].T@th["w"]+th["mu"])
     dUpsilon = eta(Z[K].T@th["w"]+th["mu"], derivative=True)
