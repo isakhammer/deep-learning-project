@@ -78,12 +78,24 @@ def forward_propogation(Y, Th, h, K):
     upsilon, Z = F_tilde(Y, Th)    
     return upsilon, Z
 
+def Jobj(upsilon, c):
+    return 1/2 * np.linalg.norm(upsilon - c)**2
+
 
 def train(c, Y, Th, h, K):
     
     
     tau = 0.5
-    for i in range(10000):     
+    
+    emin = 1e-5
+    
+    maxitr = 10000
+    itr = 0
+    
+    err = 1
+    
+    #for i in range(10000):
+    while itr <= maxitr and err > emin:
         
         
         F_t, dF_t, Z = F_tilde(Y, Th )
@@ -99,7 +111,8 @@ def train(c, Y, Th, h, K):
         
         Th["w"] -= tau*dJ_w
         Th["mu"] -= tau*dJ_mu
-        print(np.linalg.norm(upsilon - c) )
+        err = Jobj(upsilon, c)
+        print(err)
     
     #dJ_w   =  Y@(upsilon - c) @( F(Y, Th["Th"+str(K)], derivative=True))
     
