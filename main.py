@@ -52,21 +52,30 @@ out:
 def F_tilde(Y, th, d_0, d_k):
     
     Z = {}
+    dsigma = {}
+    
     Z[0] = Y
+    
     I_d = np.identity(d_k)[:,:d_0]
-    print(I_d.shape)
-    Z[1] = I_d@Z[0] + h*sigma(th["W"+str(0)]@Z[0]+th["b"+str(0)], False)
+    
+    Z_hat= th["W"+str(0)]@Z[0]+th["b"+str(0)]
+    Z[1] = I_d@Z[0] + h*sigma(Z_hat, False)
+    
+    dsigma[0] = sigma( Z_hat, True)
+    
     for k in range(2,K+1):
-        Z[k] = Z[k-1] + h*sigma(th["W"+str(k-1)]@Z[k-1]+th["b"+str(k-1)], False)
-        print(k,Z[k].shape)
-        
+        Z_hat = th["W"+str(k-1)]@Z[k-1]+th["b"+str(k-1)]
+        Z[k] = Z[k-1] + h*sigma(Z_hat, False)
+        dsigma[k-1] = sigma(Z_hat, True)
+    
+    Z_hat = th["W"+str(K)]@Z[K]+th["b"+str(K)]
+    dsigma[K] = sigma(Z_hat, True)
+    
     Upsilon = eta(Z[K].T@th["w"]+th["mu"])
-    print(Upsilon.shape)
-
-    #eta_    = eta( Z[K].T@th["w"]  + th["mu"], derivative = False )
-    #deta_ = eta( Z[K].T@th["w"]  + th["mu"], derivative = True )
+    dUpsilon = eta(Z[K].T@th["w"]+th["mu"], derivative=True)
+    
     # Maybe return dZ instead of deta and eta?
-    return Z,Upsilon
+    return Z, Upsilon, dUpsilon, dsigma
 
 def train(c, Y, th, d_0, d_k):
     
@@ -78,12 +87,27 @@ def train(c, Y, th, d_0, d_k):
     maxitr = 10000
     itr = 0
     
+    I =  Y.shape[1]
+    
     for i in range(1):
     #while itr <= maxitr and err > tol:
-        Z, Upsilon = F_tilde(Y, th, d_0, d_k)
+     
+        Z, Upsilon, dUpsilon, dsigma = F_tilde(Y, th, d_0, d_k)    
+    
+        # Equation (8)  
+        dJ_mu   =  dUpsilon.T@(Upsilon - c)
         
+        # Equation (9)
+        dJ_w = Z[K]@((Upsilon - c)* dUpsilon)
         
-
+        # Equation (10)
+        P = np.zeros(( K+1, d_k, I))
+        P[-1] = th["w"] @ ((Upsilon - c)* dUpsilon).T
+        #print((th["w"] @ ((Upsilon - c)* dUpsilon).T).shape)
+        for k in range(K-1,-1,-1):
+            print("w",  k, th["W"+str(k)])
+            P[k] = P[k+1] + h*th["W"+str(k)].T @ (dsigma[k] * P[k+1])  
+            print(P[k])
 def main():
     # (dxI)
     Y = np.array([
@@ -92,14 +116,13 @@ def main():
         [1,1,1],        
         [1,2,1]        
         ]).T
-    print(Y.shape)
     
     # (Nx1)
     c = np.array([[1,1,1,1]]).T
     
     
-    d_0 = 3
-    d_k = 6    
+    d_0 = Y.shape[0]
+    d_k = d_0    
 
 
     th = initialize_weights(d_0, d_k, K)
