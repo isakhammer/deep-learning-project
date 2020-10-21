@@ -82,6 +82,7 @@ def grad_J(c ,Y, th, d_0, d_k):
     
     I =  Y.shape[1]
     
+    # Equation 5
     Z, Upsilon, dUpsilon, dsigma = F_tilde(Y, th, d_0, d_k)    
     
     # Equation 6
@@ -100,15 +101,16 @@ def grad_J(c ,Y, th, d_0, d_k):
     P = np.zeros(( K+1, d_k, I))
     P[-1] = th["w"] @ ((Upsilon - c)* dUpsilon).T
         
-    # Equation 12
+    # Equation 11
     for k in range(K-1,-1,-1):
         P[k] = P[k+1] + h*th["W"+str(k)].T @ (dsigma[k] * P[k+1])  
     
-    # Equation 13
     for k in range(0, K):
+        # Equation 12
         dJ["W"+str(k)] = h*(P[k+1] * dsigma[k])@(Z[k]).T
-        dJ["b"+str(k)] = h*(P[k+1] * dsigma[k])@(Z[k]).T
-    
+        
+        # Equation 13
+        dJ["b"+str(k)] = h*(P[k+1] * dsigma[k])@np.ones((I,1))
     
     return J, dJ
 
@@ -124,12 +126,18 @@ def train(c, Y, th, d_0, d_k):
     
     I =  Y.shape[1]
     
-    for i in range(1):
+    
+    for i in range(10000):
     #while itr <= maxitr and err > tol:
             
         J, dJ = grad_J(c, Y, th, d_0, d_k)
         
-        
+        for key in th:
+            th[key] -=  tau*dJ[key]
+        if (i%100):
+            print("i:", i , "J ",  J)
+            
+    return th
         
         
 def main():
@@ -151,7 +159,9 @@ def main():
     th = initialize_weights(d_0, d_k, K)
    
     train(c, Y, th, d_0, d_k)
-    a = F_tilde(Y,th,d_0,d_k)
+    Z, Upsilon, dUpsilon, dsigma =  F_tilde(Y, th, d_0, d_k) 
+    print("True ", c.T ," Estimated " ,  Upsilon.T )
+   
     
 main()
     
