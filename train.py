@@ -48,41 +48,90 @@ def import_batches():
 
     return batches
     
-
-def optimization_step(c, Y, th, d_0, d_k, K, h):
+def gradient_descent(batches, th, d_0, d_k, K, h, name, epochs=1):
+    Y_key, c_key = None, None
     
+    if name=="q":
+        Y_key = "Y_q"
+        c_key = "c_q"
+    
+    if name=="p":
+        Y_key = "Y_p"
+        c_key = "c_p"
+        
     tau = 1.0
-    J, dJ = grad_J(c, Y, th, d_0, d_k, K, h)
+    
+    for i in range(epochs):
+    #while itr <= maxitr and err > tol:
+    
+        for index in batches:
+            Y = batches[index][Y_key]
+            c = batches[index][c_key]
             
-    for key in th:
-        th[key] -=  tau*dJ[key]
-       
+            J, dJ = grad_J(c, Y, th, d_0, d_k, K, h)
+            
+            for key in th:
+                th[key] -= tau*dJ[key]
+                
+           
     return th, J
+
+def adams_method(batches, th, d_0, d_k, K, h, name, epochs=1):
+    
+    Y_key, c_key = None, None
+    
+    if name=="q":
+        Y_key = "Y_q"
+        c_key = "c_q"
+    
+    if name=="p":
+        Y_key = "Y_p"
+        c_key = "c_p"
+        
+    
+    v = {} 
+    m = {}
+    
+    beta_1, beta_2 =  0.9, 0.999
+    alpha, epsilon = 0.01, 10**(-8)
+    
+    for key in th:
+        v[key] = np.zeros(th[key].shape)   
+        m[key] = np.zeros(th[key].shape)   
+    
+    
+    for i in range(epochs):
+    #while itr <= maxitr and err > tol:
+    
+        for index in batches:
+            Y = batches[index][Y_key]
+            c = batches[index][c_key]
+            
+            j = (i* len(batches) + index)
+            
+            J, dJ = grad_J(c, Y, th, d_0, d_k, K, h)
+            
+            for key in th:
+                g = dJ[key]
+                m[key] = beta_1*m[key] + (1- beta_1)*g
+                v[key] = beta_2*v[key] + (1 - beta_2)*(g*g)
+                mhat = m[key]/(1 - beta_1**j)
+                vhat = v[key]/(1 - beta_2**j)
+                th[key] -= alpha*mhat/(np.square(vhat) + epsilon)
+        
+    return th
+    
 
 def train(batches, th_q, th_p, d_0, d_k, K, h):
     
+    method = "adams"
     
-    tol = 1e-5
-    err = 1
+    if method=="adams":
+        th_q = adams_method(batches, th_q, d_0, d_k, K, h, name="q", epochs=1)
     
-    maxitr = 10000
-    itr = 0
-    
-    
-    for i in range(100):
-    #while itr <= maxitr and err > tol:
-        for index in batches:
-            Y_p = batches[index]["Y_p"]
-            c_p = batches[index]["c_p"]
-            
-            Y_q = batches[index]["Y_q"]            
-            c_q = batches[index]["c_q"]
-            
-            th_q, J_q = optimization_step(c_q, Y_q, th_q, d_0, d_k, K, h)
-            th_p, J_p = optimization_step(c_p, Y_p, th_p, d_0, d_k, K, h)
-            
-        if (i%10 == 0):
-            print("i:", i , "J_q: ",  J_q ,"J_p: ", J_p)
+    if method=="gradient_descent":
+        th_q = gradient_descent(batches, th_q, d_0, d_k, K, h, name="q", epochs=1)
+                
             
     return th_q, th_p
         
