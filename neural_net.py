@@ -7,16 +7,19 @@ Created on Wed Oct 21 17:27:15 2020
 """
 import numpy as np
 
-
+kp = 0
 def sigma(x, derivative=False):
-  if (derivative):
-    return 1 / np.cosh(x)**2 
-  return np.tanh(x)
+    if kp < 3:
+        print(np.linalg.norm(x))
+        kp += 1
+    if (derivative):
+        return 1 / np.cosh(x)**2 
+    return np.tanh(x)
 
 def eta(x, derivative=False):
-  if (derivative):
-    return (1/4)*(1 / np.cosh(x)**2 )
-  return 0.5*(1 + np.tanh(x*0.5))
+    if (derivative):
+        return (1/4)*(1 / np.cosh(x)**2 )
+    return 0.5*(1 + np.tanh(x*0.5))
 
 
 """
@@ -33,16 +36,16 @@ def F_tilde(Y, th, d_0, d_k, K, h):
     Z = {}
     dsigma = {}
     
-    Z[0] = Y
-    
     I_d = np.identity(d_k)[:,:d_0]
+    Z[0] = I_d@Y
+    
     
     Z_hat= th["W"+str(0)]@Z[0]+th["b"+str(0)]
-    Z[1] = I_d@Z[0] + h*sigma(Z_hat, False)
+    Z[1] = Z[0] + h*sigma(Z_hat, False)
     
     dsigma[0] = sigma( Z_hat, True)
     
-    for k in range(2,K+1):
+    for k in range(2, K+1):
         Z_hat = th["W"+str(k-1)]@Z[k-1]+th["b"+str(k-1)]
         Z[k] = Z[k-1] + h*sigma(Z_hat, False)
         dsigma[k-1] = sigma(Z_hat, True)

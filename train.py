@@ -151,13 +151,13 @@ def import_batches_example():
     batch = {}   
     
     batch["Y_q"] = np.array([
-                    [1,1,1],        	           
+                    [1,2,1],        	           
                     [1,1,2],        	       
-                    [1,1,1],        	               
+                    [1,2,1],        	               
                     [1,2,1]        	          
                     ]).T	       
     batch["Y_p"] =  batch["Y_q"]  
-    batch["c_q"] = np.array([[1,1,1,1]]).T	
+    batch["c_q"] = np.array([[1,2,1,1]]).T	
    
     batch["c_p"] = batch["c_q"]
     batches[0] = batch
@@ -179,7 +179,7 @@ def gradient_descent(batches, th, d_0, d_k, K, h, name, epochs):
         Y_key = "Y_p"
         c_key = "c_p"
         
-    tau = 1.0
+    tau = 0.5
     tol = 0.01
     
     #for i in range(epochs):
@@ -246,7 +246,25 @@ def adams_method(batches, th, d_0, d_k, K, h, name, epochs):
     return th
     
 
+def scale_batches(batches):
+    def scale(Y, alpha= 0, beta=1):
+        return  (1/(np.amax(Y)- np.amin(Y)))*(( np.amax(Y) -Y)*alpha + (Y - np.amax(Y))*beta)
+    
+    for index in batches:
+        
+        # scaling
+        batches[index]["Y_q"] = scale(batches[index]["Y_q"])
+        
+        batches[index]["c_q"] = scale(batches[index]["c_q"])
+        batches[index]["Y_p"] = scale(batches[index]["Y_p"])
+        
+        batches[index]["c_p"] = scale(batches[index]["c_p"])
+    
+    return batches
+
+
 def train(batches, th_q, th_p, d_0, d_k, K, h, epochs, method):
+    
     
     
     if method=="adam":
@@ -290,14 +308,13 @@ def main():
     h = 1/2
     d_0 = 3
     d_k = 10    
-    epochs = 10
+    epochs = 10000
     
-    #method="adam"
-    #method="gradient_descent"
+    batches = import_batches_example() 
+    #batches =  import_batches()
     
-    batches = import_batches()
-    #batches[0]["Y_p"] = batches[0]["Y_p"]
-    #batches = import_batches_example() 
+    #batches = scale_batches( batches)
+    
     th_p = initialize_weights(d_0, d_k, K)
     th_q = initialize_weights(d_0, d_k, K)
     
@@ -309,11 +326,11 @@ def test():
     batches = import_batches()
     
     
+    
     K = 10
     h = 1/2
     d_0 = 3
     d_k = 10    
-    
     
     Y_key = "Y_p"
     
