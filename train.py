@@ -330,7 +330,6 @@ def main():
     
     K = 3
     h = 1/2
-    d_0 = 3
     d_k = 3    
     epochs = 10
     
@@ -338,6 +337,7 @@ def main():
     #batches =  import_batches()
     batches = import_one_batch()
     batches = scale_batches( batches)
+    d_0 = batches[0]["Y_p"].shape[0]
     
     
     th_p = initialize_weights(d_0, d_k, K)
