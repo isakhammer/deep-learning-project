@@ -73,6 +73,8 @@ def import_batches_example():
     
 def gradient_descent(batches, th, d_0, d_k, K, h, name, epochs):
     
+    print("\n GRADIENT DESCENT - Variable: ", name)
+    
     Y_key, c_key = None, None
     
     if name=="q":
@@ -101,6 +103,8 @@ def gradient_descent(batches, th, d_0, d_k, K, h, name, epochs):
 
 def adams_method(batches, th, d_0, d_k, K, h, name, epochs):
     
+    print("\n ADAMS METHOD - Variable: ", name)
+   
     Y_key, c_key = None, None
     
     if name=="q":
@@ -146,11 +150,10 @@ def adams_method(batches, th, d_0, d_k, K, h, name, epochs):
     return th
     
 
-def train(batches, th_q, th_p, d_0, d_k, K, h, epochs):
+def train(batches, th_q, th_p, d_0, d_k, K, h, epochs, method):
     
-    method = "gradient_descent"
     
-    if method=="adams":
+    if method=="adam":
         th_p = adams_method(batches, th_p, d_0, d_k, K, h, name="p",  epochs=epochs)
         th_q = adams_method(batches, th_q, d_0, d_k, K, h, name="q", epochs=epochs)
     
@@ -187,19 +190,22 @@ def initialize_weights(d_0, d_k, K):
 
 def main():
     
-    K = 5
+    K = 10
     h = 1/2
     d_0 = 3
     d_k = d_0    
     epochs = 10
     
-    #batches = import_batches()
-    batches = import_batches_example()
+    #method="adam"
+    method="gradient_descent"
     
+    #batches = import_batches()
+    batches = import_batches_example() 
     th_p = initialize_weights(d_0, d_k, K)
     th_q = initialize_weights(d_0, d_k, K)
-   
-    train( batches, th_q, th_p, d_0, d_k, K, h, epochs)
+    
+    train( batches, th_q, th_p, d_0, d_k, K, h, epochs, method="gradient_descent")
+    train( batches, th_q, th_p, d_0, d_k, K, h, epochs, method="adam")
     
 
 
