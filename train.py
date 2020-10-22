@@ -12,15 +12,15 @@ import os
 from neural_net import grad_J, F_tilde
 
 """
-Imports data
+Imports data from a batch csv with format (t, q1, q2, q3, p1, p2, p3, K, V)
 
 Output:
     n batches with following matrices:
         t: time (I, 1)
-        Y_q: kinetic variables (3, I)
-        Y_k: potential variables (3, I)
-        c_K: total kinetic energy (I, 1)
-        c_V: total potential energy (I, 1)
+        Y_p: kinetic variables p1, p2, p3 (3, I)
+        Y_q: potential variables q1, q2, q3 (3, I)
+        c_p: total kinetic energy K (I, 1)
+        c_q: total potential energy V (I, 1)
 
 """
 def import_batches():
@@ -41,18 +41,26 @@ def import_batches():
         batch["t"] = batch_data[:, 0, np.newaxis]
         batch["Y_q"] = batch_data[:, 1:4].T
         batch["Y_p"] = batch_data[:, 4:7].T
-        batch["c_K"] = batch_data[:, 7, np.newaxis]
-        batch["c_V"] = batch_data[:, 7, np.newaxis]
+        batch["c_p"] = batch_data[:, 7, np.newaxis] 
+        batch["c_q"] = batch_data[:, 8, np.newaxis] # potential energy
         
         batches[i] = batch
 
     return batches
     
 
-
-def train(c, Y, th, d_0, d_k, K, h):
+def optimization_step(c, Y, th, d_0, d_k, K, h):
     
-    tau = 0.5
+    tau = 1.0
+    J, dJ = grad_J(c, Y, th, d_0, d_k, K, h)
+            
+    for key in th:
+        th[key] -=  tau*dJ[key]
+       
+    return th, J
+
+def train(batches, th_q, th_p, d_0, d_k, K, h):
+    
     
     tol = 1e-5
     err = 1
@@ -60,19 +68,23 @@ def train(c, Y, th, d_0, d_k, K, h):
     maxitr = 10000
     itr = 0
     
-    I =  Y.shape[1]
     
-    for i in range(10000):
+    for i in range(100):
     #while itr <= maxitr and err > tol:
-        print(i)   
-        J, dJ = grad_J(c, Y, th, d_0, d_k, K, h)
-        
-        for key in th:
-            th[key] -=  tau*dJ[key]
-        if (i%100 == 0):
-            print("i:", i , "J ",  J)
+        for index in batches:
+            Y_p = batches[index]["Y_p"]
+            c_p = batches[index]["c_p"]
             
-    return th
+            Y_q = batches[index]["Y_q"]            
+            c_q = batches[index]["c_q"]
+            
+            th_q, J_q = optimization_step(c_q, Y_q, th_q, d_0, d_k, K, h)
+            th_p, J_p = optimization_step(c_p, Y_p, th_p, d_0, d_k, K, h)
+            
+        if (i%10 == 0):
+            print("i:", i , "J_q: ",  J_q ,"J_p: ", J_p)
+            
+    return th_q, th_p
         
 
 def initialize_weights(d_0, d_k, K):
@@ -100,34 +112,21 @@ def main():
     
     K = 5
     h = 1/2
-    
-    # (dxI)
-    Y = np.array([
-        [1,1,1],        
-        [1,1,2],        
-        [1,1,1],        
-        [1,2,1]        
-        ]).T
-    
-    # (Ix1)
-    c = np.array([[1,1,1,1]]).T
-    print(c.shape, Y.shape)
-    
-    d_0 = Y.shape[0]
+    d_0 = 3
     d_k = d_0    
 
-    th = initialize_weights(d_0, d_k, K)
+    batches = import_batches()
+    th_p = initialize_weights(d_0, d_k, K)
+    th_q = initialize_weights(d_0, d_k, K)
    
-    train(c, Y, th, d_0, d_k, K, h)
-    Z, Upsilon, dUpsilon, dsigma =  F_tilde(Y, th, d_0, d_k, K, h)
-    print("True ", c.T ," Estimated " ,  Upsilon.T )
+    train( batches, th_q, th_p, d_0, d_k, K, h)
+    
 
 
 
 
 
 
-batches = import_batches()
 main()
 
     
