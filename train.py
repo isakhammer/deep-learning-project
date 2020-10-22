@@ -142,6 +142,29 @@ def import_batches():
 
     return batches
 
+def import_one_batch():
+   
+    data_prefix = "datalist_batch_"
+    data_path = os.path.join(os.path.dirname(__file__), "project_2_trajectories")
+    
+    batches = {}
+    
+    i = 0
+    # assemble track import path
+    batch_path = os.path.join(data_path, data_prefix + str(i) + ".csv")
+    batch_data = np.loadtxt(batch_path, delimiter=',', skiprows=1)
+        
+    # np.newaxis is adding a dimension such that (I,) -> (I, 1)
+    batch = {}
+    batch["t"] = batch_data[:, 0, np.newaxis]
+    batch["Y_q"] = batch_data[:, 1:4].T
+    batch["Y_p"] = batch_data[:, 4:7].T
+    batch["c_p"] = batch_data[:, 7, np.newaxis] 
+    batch["c_q"] = batch_data[:, 8, np.newaxis] # potential energy
+        
+    batches[0] = batch
+
+    return batches
 
 
 def import_batches_example():
@@ -187,6 +210,7 @@ def gradient_descent(batches, th, d_0, d_k, K, h, name, epochs):
     i = 0
     while i <= epochs :#and J < tol:
         i += 1
+        
         for index in batches:
             Y = batches[index][Y_key]
             c = batches[index][c_key]
@@ -304,16 +328,17 @@ def initialize_weights(d_0, d_k, K):
 
 def main():
     
-    K = 10
+    K = 3
     h = 1/2
     d_0 = 3
-    d_k = 10    
-    epochs = 10000
+    d_k = 3    
+    epochs = 10
     
-    batches = import_batches_example() 
+    #batches = import_batches_example() 
     #batches =  import_batches()
+    batches = import_one_batch()
+    batches = scale_batches( batches)
     
-    #batches = scale_batches( batches)
     
     th_p = initialize_weights(d_0, d_k, K)
     th_q = initialize_weights(d_0, d_k, K)
