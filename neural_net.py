@@ -1,31 +1,11 @@
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Mon Oct 19 18:47:13 2020
+Created on Wed Oct 21 17:27:15 2020
 
 @author: isakh
 """
 import numpy as np
-
-def initialize_weights(d_0, d_k, K):
-    Th = {}
-    
-    if (K>1):
-        Th["Th"+str(1)] = {}
-        Th["Th"+str(1)]["W"] = 2*np.random.random((d_0, d_k )) - 1
-        Th["Th"+str(1)]["b"] = np.random.random((1, d_k))
-        
-        for i in range(1,K):
-            Th["Th"+str(i)] = {}
-            Th["Th"+str(i)]["W"] = 2*np.random.random((d_k, d_k )) - 1
-            Th["Th"+str(i)]["b"] = np.random.random((1, d_k))
-            
-        Th["w"] = 2*np.random.random((d_k, 1 )) - 1
-        Th["mu"] = np.random.random((1, 1))
-    else:
-        Th["w"] = 2*np.random.random((d_0, 1 )) - 1
-        Th["mu"] = np.random.random((1, 1))
-    
-    return Th
 
 
 def sigma(x, derivative=False):
@@ -39,9 +19,6 @@ def eta(x, derivative=False):
   return 0.5*(1 + np.tanh(x*0.5))
 
 
-def Phi_k(Z_k, Th_k):
-    return Z_k +  sigma( Z_k@Th_k["W"] + Th_k["b"] )
-    
 """
 Input:
     Z_k = (d, N)
@@ -51,104 +28,72 @@ Input:
 out: 
     \eta( Z_k^T w  + \mu ) = (I, 1) 
 """
-def F_tilde(Z_k, Th):
+def F_tilde(Y, th, d_0, d_k, K, h):
+    
     Z = {}
+    dsigma = {}
     
-    Z_K =  Z_k
-    Z["K"] = Z_K
+    Z[0] = Y
     
-    eta_    = eta( Z_K.T@Th["w"]  + Th["mu"], derivative = False )
-    deta_ = eta( Z_K.T@Th["w"]  + Th["mu"], derivative = True )
+    I_d = np.identity(d_k)[:,:d_0]
+    
+    Z_hat= th["W"+str(0)]@Z[0]+th["b"+str(0)]
+    Z[1] = I_d@Z[0] + h*sigma(Z_hat, False)
+    
+    dsigma[0] = sigma( Z_hat, True)
+    
+    for k in range(2,K+1):
+        Z_hat = th["W"+str(k-1)]@Z[k-1]+th["b"+str(k-1)]
+        Z[k] = Z[k-1] + h*sigma(Z_hat, False)
+        dsigma[k-1] = sigma(Z_hat, True)
+    
+    #Z_hat = th["W"+str(K)]@Z[K]+th["b"+str(K)]
+    #dsigma[K] = sigma(Z_hat, True)
+    
+    Upsilon = eta(Z[K].T@th["w"]+th["mu"])
+    dUpsilon = eta(Z[K].T@th["w"]+th["mu"], derivative=True)
     
     # Maybe return dZ instead of deta and eta?
-    return eta_, deta_,  Z
+    return Z, Upsilon, dUpsilon, dsigma
 
 
-"""
-Input 
-    Y: (d, I)
-    Th: weights.
-    h: stepsize
-    K: number of layers
+def grad_J(c ,Y, th, d_0, d_k, K, h):
+    
+    I =  Y.shape[1]
+    
+    # Equation 5
+    Z, Upsilon, dUpsilon, dsigma = F_tilde(Y, th, d_0, d_k, K, h)    
+    
+    # Equation 6
+    J = 0.5*np.linalg.norm(Upsilon - c)**2
 
-Output:
-    Upsilon: (I, 1)    
-"""
-def forward_propogation(Y, Th, h, K):
-    upsilon, Z = F_tilde(Y, Th)    
-    return upsilon, Z
+    # Initializing gradient
+    dJ = {}
 
-def Jobj(upsilon, c):
-    return 1/2 * np.linalg.norm(upsilon - c)**2
-
-
-def train(c, Y, Th, h, K):
-    
-    
-    tau = 0.5
-    
-    emin = 1e-5
-    
-    maxitr = 10000
-    itr = 0
-    
-    err = 1
-    
-    #for i in range(10000):
-    while itr <= maxitr and err > emin:
+    # Equation (8)  
+    dJ["mu"]   =  dUpsilon.T@(Upsilon - c)
         
+    # Equation (9)
+    dJ["w"] = Z[K]@((Upsilon - c)* dUpsilon)
         
-        F_t, dF_t, Z = F_tilde(Y, Th )
-
-        # Equation (8)  
-        upsilon = F_t
-        dJ_mu   =  F_t.T@(upsilon - c)
+    # Equation (10)
+    P = np.zeros(( K+1, d_k, I))
+    P[-1] = th["w"] @ ((Upsilon - c)* dUpsilon).T
         
-        # Equation (9)
-        dJ_w = (upsilon - c)* dF_t
-        dJ_w = Z["K"]@dJ_w
+    # Equation 11
+    for k in range(K-1,-1,-1):
+        P[k] = P[k+1] + h*th["W"+str(k)].T @ (dsigma[k] * P[k+1])  
+    
+    for k in range(0, K):
+        # Equation 12
+        dJ["W"+str(k)] = h*(P[k+1] * dsigma[k])@(Z[k]).T
         
-        
-        Th["w"] -= tau*dJ_w
-        Th["mu"] -= tau*dJ_mu
-        err = Jobj(upsilon, c)
-        print(err)
+        # Equation 13
+        dJ["b"+str(k)] = h*(P[k+1] * dsigma[k])@np.ones((I,1))
     
-    #dJ_w   =  Y@(upsilon - c) @( F(Y, Th["Th"+str(K)], derivative=True))
-    
-    #print(J_mu)
-    #print( "f",  f.shape,"c" ,upsilon.shape)
-    #Y@(upsilon - c) 
-    return upsilon
+    return J, dJ
 
-    
-
-def single_neuron():
-    # (dxN)
-    Y = np.array([
-        [1,1,1],        
-        [1,1,2],        
-        [1,1,1],        
-        [1,2,1]        
-        ]).T
-    
-    # (Nx1)
-    c = np.array([[1,1,1,1]]).T
-    
-    
-    d_0 = 3
-    d_k = 2    
-    K   = 1
-    h   = 1
-
-
-    Th = initialize_weights(d_0, d_k, K)
-   
-    train(c, Y, Th, h, K)
-    
-    
 
 
 
     
-single_neuron()
