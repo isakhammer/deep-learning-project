@@ -1,2 +1,2 @@
-# numerical-mathematics-project-2
+# Using deep learning to approximate a hamiltonian function
 TMA4215
