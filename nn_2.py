@@ -87,11 +87,36 @@ def adams(K, th, dJ_w, dJ_mu, dJ_W, dJ_b, tau):
     v0 = 0
     m0 = 0
     
-    
     return th
 
 def n(x):
     return np.linalg.norm(x)
+
+def dJ_func(c, Y, th, d_0, d, K, h):
+    Z, Upsilon = F_tilde(Y, th, d_0, d, K, h)
+    I = Upsilon.shape[0]
+        
+    etahat = eta(Z[K].T@th["w"] + th["mu"]*np.ones(( I, 1)), derivative=True )
+        
+    P = np.zeros(( K+1, d, I))
+    P[K] = np.outer(th["w"], ( (Upsilon - c)* etahat).T)
+        
+    dJ_mu = etahat.T @(Upsilon - c)
+        
+    dJ_w = Z[K] @ ((Upsilon - c) * etahat)
+        
+    for k in range(K, 0, -1):
+        P[k-1] = P[k] + h*th["W"+str(k-1)].T @ (sigma(th["W"+str(k-1)]@Z[k-1]+np.outer(th["b"+str(k-1)],np.ones(I)), True) * P[k])
+            
+    dJ_W = np.zeros((K, d, d))
+    dJ_b = np.zeros((K, d, 1))
+        
+    for k in range(K):
+        dsigma = sigma(th["W"+str(k)]@Z[k]+np.outer(th["b"+str(k)],np.ones(I)),True)
+            
+        dJ_W[k] = h*(P[k+1]*dsigma) @ Z[k].T
+        dJ_b[k] = (h*(P[k+1]*dsigma) @ np.ones(I))[:,np.newaxis]
+    return dJ_w, dJ_mu, dJ_W, dJ_b
 
 def train(c, d, d_0, K, h, Y, th, tau=0.0005, max_it=60, print_it=False):
     # compute Zk
@@ -109,31 +134,9 @@ def train(c, d, d_0, K, h, Y, th, tau=0.0005, max_it=60, print_it=False):
     while (itr < max_it ):
         
         Z, Upsilon = F_tilde(Y, th, d_0, d, K, h)
-        I = Upsilon.shape[0]
         
+        dJ_w, dJ_mu, dJ_W, dJ_b = dJ_func(c, Y, th, d_0, d, K, h)
         
-        etahat = eta(Z[K].T@th["w"] + th["mu"]*np.ones(( I, 1)), derivative=True )
-        
-        # Equation (10)
-        P = np.zeros(( K+1, d, I))
-        P[K] = np.outer(th["w"], ( (Upsilon - c)* etahat).T)
-        
-        dJ_mu = etahat.T @(Upsilon - c)
-        
-        dJ_w = Z[K] @ ((Upsilon - c) * etahat)
-        
-        for k in range(K, 0, -1):
-            P[k-1] = P[k] + h*th["W"+str(k-1)].T @ (sigma(th["W"+str(k-1)]@Z[k-1]+np.outer(th["b"+str(k-1)],np.ones(I)), True) * P[k])
-            
-        dJ_W = np.zeros((K, d, d))
-        dJ_b = np.zeros((K, d, 1))
-        
-        for k in range(K):
-            dsigma = sigma(th["W"+str(k)]@Z[k]+np.outer(th["b"+str(k)],np.ones(I)),True)
-            
-            dJ_W[k] = h*(P[k+1]*dsigma) @ Z[k].T
-            dJ_b[k] = (h*(P[k+1]*dsigma) @ np.ones(I))[:,np.newaxis]
-            
         th = gradientDesent(K, th, dJ_w, dJ_mu, dJ_W, dJ_b, tau)
         
         err = J_func(Upsilon,c)  
