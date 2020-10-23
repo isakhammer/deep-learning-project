@@ -19,11 +19,11 @@ def generate_synthetic_batches(I):
     Y1 = np.linspace(-1,1,I)
     Y2 = np.linspace(1,-1,I)
     
-    #batch["Y"] = np.array([Y1,Y2])
+    batch["Y"] = np.array([Y1,Y2])
     #batch["Y"] = np.array([[1,1],
     #                      [1,2]])
     
-    batch["Y"] = np.random.uniform(high=2, low=-2, size=(d_0,I) )    
+    #batch["Y"] = np.random.uniform(high=2, low=-2, size=(d_0,I) )    
     
     
     batch["c"] = 0.5*batch["Y"][0,:]**2 + 0.5*batch["Y"][1,:]**2
@@ -111,7 +111,8 @@ def adams(K, th, dJ_w, dJ_mu, dJ_W, dJ_b, tau):
     
     return th
 
-
+def n(x):
+    return np.linalg.norm(x)
 
 def train(c, d, d_0, K, h, Y, th, tau=0.0005, max_it=60):
     # compute Zk
@@ -119,14 +120,12 @@ def train(c, d, d_0, K, h, Y, th, tau=0.0005, max_it=60):
     tol = 10**(-3)
     
     
-    
     itr = 0
     Z, Upsilon = F_tilde(Y, th, d_0, d, K, h)
     JJ = np.zeros(max_it+1)
-    err = J_func(Upsilon,c)  
-        
+    err = J_func(Upsilon,c)
+    
     JJ[0] = err
-        
     
     while (itr < max_it ):
         
@@ -163,50 +162,14 @@ def train(c, d, d_0, K, h, Y, th, tau=0.0005, max_it=60):
         JJ[itr+1] = err
         
         itr += 1
-        
-        
+        if(itr%10 == 0):
+            print(itr,err)
         
     return JJ
         
-        
-    
 
-def tau():
-        
-    K = 14
-    h = 1/10
-    d_0 = 2
-    d = 4
-    I = 20
-    max_it = 1000
     
-                
-    b = generate_synthetic_batches(I)
-    
-    #c = b["c"]
-    #Y = b["Y"]
-    c = scale(b["c"])
-    Y = scale(b["Y"])
-    d_0 = Y.shape[0]
-    
-    var = [3, 5, 2.5, 2, 1, 0.5, 0.1, 0.01]
-    #var = np.arange(2, 40, 6)
-    it = np.arange(0,max_it+1)
-    
-    for i in range(len(var)):    
-        
-        tau = var[i]
-        th = initialize_weights(d_0, d, K)
-        JJ = train(c, d, d_0, K, h, Y, th, tau=tau, max_it=max_it)
-        plt.plot(it, JJ, label="layer: "+ str(tau))
-    
-    #plt.yscale("log")
-    plt.legend()
-    plt.show()
-    
-
-def layers():
-        
+def main():
     K = 14
     h = 1/10
     d_0 = 2
@@ -223,19 +186,12 @@ def layers():
     Y = scale(b["Y"])
     d_0 = Y.shape[0]
     
-    var = np.arange(2, 40, 6)
-    it = np.arange(0,max_it+1)
+    th = initialize_weights(d_0, d, K)
+    JJ = train(c, d, d_0, K, h, Y, th, tau=tau, max_it=max_it)
     
-    for i in range(len(var)):    
-        K = var[i]
-        th = initialize_weights(d_0, d, K)
-        JJ = train(c, d, d_0, K, h, Y, th, tau=tau, max_it=max_it)
-        plt.plot(it, JJ, label="layer: "+ str(var[i]))
     
-    #plt.yscale("log")
-    plt.legend()
-    plt.show()
 
-
-
-layers()
+#f()
+#tau()
+#layers()
+#main()
