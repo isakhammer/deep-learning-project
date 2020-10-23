@@ -72,6 +72,14 @@ def eta(x, derivative=False, identity=True):
 def J_func(Upsilon, c):
     return 0.5*np.linalg.norm(c - Upsilon)**2
 
+
+def scale(x, alpha=-10, beta=0):
+    
+    a = np.min(x)
+    b = np.max(x)
+    return ( (b - x)*alpha + (x - a)*beta)/(b - a)
+
+
 def train(c, d, d_0, K, h, Y, th, tau=0.0001):
     # compute Zk
     err = np.inf
