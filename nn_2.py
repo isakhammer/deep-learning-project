@@ -172,7 +172,7 @@ def main():
     d_0 = 2
     d = 4
     I = 20
-    max_it = 10000
+    max_it = 800
     
                 
     b = generate_synthetic_batches(I)
@@ -182,7 +182,7 @@ def main():
     d_0 = Y.shape[0]
     
     
-    KK = np.arange(1,4, 1)
+    KK = np.arange(2,100, 10)
     it = np.arange(max_it)
     
     for i in range(len(KK)):    
@@ -190,7 +190,7 @@ def main():
         JJ = train(c, d, d_0, KK[i], h, Y, th, tau=0.0005, max_it=max_it)
         plt.plot(it, JJ, label="layer: "+ str(KK[i]))
     
-    plt.yscale("log")
+    #plt.yscale("log")
     plt.legend()
     plt.show()
     
