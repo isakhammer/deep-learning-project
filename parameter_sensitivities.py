@@ -17,7 +17,6 @@ def tau_sensitivity():
     d_0 = Y.shape[0]
     
     var = [ 2, 1, 0.5, 0.25, 0.1, 0.01]
-    #var = np.arange(2, 40, 6)
     it = np.arange(0,max_it+1)
     
     for i in range(len(var)):    
@@ -26,7 +25,6 @@ def tau_sensitivity():
         JJ = train(c, d, d_0, K, h, Y, th, tau=tau, max_it=max_it)
         plt.plot(it, JJ, label="tau: "+ str(tau))
     
-    #plt.yscale("log")
     plt.title("Tau Sensitivity Analysis")
     plt.legend()
     plt.show()
@@ -49,7 +47,6 @@ def layer_sensitivity():
         JJ = train(c, d, d_0, K, h, Y, th, tau=tau, max_it=max_it)
         plt.plot(it, JJ, label="K: "+ str(var[i]))
     
-    #plt.yscale("log")
     plt.title("Layer Sensitivity Analysis")
     plt.legend()
     plt.show()
@@ -73,7 +70,6 @@ def h_sensitivity():
         JJ = train(c, d, d_0, K, h, Y, th, tau=tau, max_it=max_it)
         plt.plot(it, JJ, label="h: "+ str(var[i]))
     
-    #plt.yscale("log")
     plt.title("h Sensitivity Analysis")
     plt.legend()
     plt.show()
