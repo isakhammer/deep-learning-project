@@ -7,6 +7,7 @@ Created on Thu Oct 22 17:29:57 2020
 """
 
 import numpy as np
+import matplotlib.pyplot as plt
 
 
 def generate_synthetic_batches(I):
@@ -110,7 +111,7 @@ def adams(K, th, dJ_w, dJ_mu, dJ_W, dJ_b, tau):
 
 
 
-def train(c, d, d_0, K, h, Y, th, tau=0.0005):
+def train(c, d, d_0, K, h, Y, th, tau=0.0005, max_it=60):
     # compute Zk
     err = np.inf
     tol = 10**(-3)
@@ -118,8 +119,7 @@ def train(c, d, d_0, K, h, Y, th, tau=0.0005):
     
     
     itr = 0
-    maxitr = 100
-    while (err > tol) and (itr < maxitr ):
+    while (err > tol) and (itr < max_it ):
         
         Z, Upsilon = F_tilde(Y, th, d_0, d, K, h)
         I = Upsilon.shape[0]
@@ -175,9 +175,12 @@ def main():
     
     KK = np.arange(10)
     J = np.zeros(KK.shape)
-    for K in KK:    
-        J[0] = train(c, d, d_0, K, h, Y, th)
     
+    for i in range(len(KK)):    
+        J[i] = train(c, d, d_0, KK[i], h, Y, th, tau=0.0005, max_it=60)
+   
+    plt.plot(KK, J)
+    plt.show()
     
     
 main()
