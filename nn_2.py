@@ -114,7 +114,7 @@ def adams(K, th, dJ_w, dJ_mu, dJ_W, dJ_b, tau):
 def n(x):
     return np.linalg.norm(x)
 
-def train(c, d, d_0, K, h, Y, th, tau=0.0005, max_it=60):
+def train(c, d, d_0, K, h, Y, th, tau=0.0005, max_it=60, print_it=False):
     # compute Zk
     err = np.inf
     tol = 10**(-3)
@@ -162,7 +162,7 @@ def train(c, d, d_0, K, h, Y, th, tau=0.0005, max_it=60):
         JJ[itr+1] = err
         
         itr += 1
-        if(itr%10 == 0):
+        if(itr%10 == 0) and (print_it == True):
             print(itr,err)
         
     return JJ
