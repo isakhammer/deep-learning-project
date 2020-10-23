@@ -15,8 +15,14 @@ def generate_synthetic_batches(I):
     
     d_0 = 2
     
+    
+    batch["Y"] = np.array([
+            [1,1],
+            [2,3],
+            [1,-2]])
         
-    batch["Y"] = np.random.uniform(high=2, low=-2, size=(d_0,I) )    
+   # batch["Y"] = np.random.uniform(high=2, low=-2, size=(d_0,I) )    
+    
     batch["c"] = 0.5*batch["Y"][0,:]**2 + 0.5*batch["Y"][1,:]**2
     batch["c"] = batch["c"][:, np.newaxis]
         
@@ -145,11 +151,9 @@ def train(c, d, d_0, K, h, Y, th, tau=0.0005):
         
         err = J_func(Upsilon,c)  
         itr += 1
-        print(itr,err)  
+        #print(itr,err)  
         
-        
-        
-    return etahat    
+    return err
         
         
     
@@ -168,9 +172,11 @@ def main():
     d_0 = Y.shape[0]
     th = initialize_weights(d_0, d, K)
     
-
     
-    train(c, d, d_0, K, h, Y, th)
+    KK = np.arange(10)
+    J = np.zeros(KK.shape)
+    for K in KK:    
+        J[0] = train(c, d, d_0, K, h, Y, th)
     
     
     
