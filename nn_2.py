@@ -80,7 +80,7 @@ def J_func(Upsilon, c):
     return 0.5*np.linalg.norm(c - Upsilon)**2
 
 
-def scale(x, alpha=-10, beta=0):
+def scale(x, alpha=0, beta=1):
     
     a = np.min(x)
     b = np.max(x)
@@ -177,7 +177,8 @@ def main():
                 
     b = generate_synthetic_batches(I)
     c = b["c"]
-    Y = b["Y"]
+    c = scale(b["c"])
+    Y = scale(b["Y"])
     d_0 = Y.shape[0]
     
     
