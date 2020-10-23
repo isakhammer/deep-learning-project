@@ -16,11 +16,11 @@ def generate_synthetic_batches(I):
     
     d_0 = 2
     
+    Y1 = np.linspace(-2,2,I)
+    Y2 = np.linspace(2,-2,I)
     
-    batch["Y"] = np.array([
-            [1,1],
-            [2,3],
-            [1,-2]])
+    batch["Y"] = np.array([Y1,Y2])
+    
         
    # batch["Y"] = np.random.uniform(high=2, low=-2, size=(d_0,I) )    
     
@@ -64,7 +64,7 @@ def sigma(x, derivative=False):
         return 1 / np.cosh(x)**2 
     return np.tanh(x)
 
-def eta(x, derivative=False, identity=True):
+def eta(x, derivative=False, identity=False):
     if identity==True:
         if (derivative):
             return np.ones(x.shape)
@@ -168,7 +168,7 @@ def train(c, d, d_0, K, h, Y, th, tau=0.0005, max_it=60):
 def main():
         
     K = 10
-    h = 1/100
+    h = 1/10
     d_0 = 2
     d = 4
     I = 20
@@ -193,6 +193,7 @@ def main():
     plt.yscale("log")
     plt.legend()
     plt.show()
+    
     
     
 main()
