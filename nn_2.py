@@ -189,17 +189,16 @@ def tau():
     Y = scale(b["Y"])
     d_0 = Y.shape[0]
     
-    var = np.linspace(-4, 4, 10)
+    var = [3, 5, 2.5, 2, 1, 0.5, 0.1, 0.01]
     #var = np.arange(2, 40, 6)
     it = np.arange(0,max_it+1)
     
-    th = initialize_weights(d_0, d, K)
     for i in range(len(var)):    
         
-        tau = 0.5*10**(var[0])
-        
+        tau = var[i]
+        th = initialize_weights(d_0, d, K)
         JJ = train(c, d, d_0, K, h, Y, th, tau=tau, max_it=max_it)
-        plt.plot(it, JJ, label="layer: "+ str(var[i]))
+        plt.plot(it, JJ, label="layer: "+ str(tau))
     
     #plt.yscale("log")
     plt.legend()
