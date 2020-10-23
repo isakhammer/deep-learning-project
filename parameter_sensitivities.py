@@ -116,7 +116,6 @@ def I_sensitivity():
         d_0 = Y.shape[0]
     
         print("I:", I)
-        d = var[i]
         th = initialize_weights(d_0, d, K)
         JJ = train(c, d, d_0, K, h, Y, th, tau=tau, max_it=max_it, print_it=False)
         plt.plot(it, JJ, label="I: "+ str(var[i]))
@@ -127,6 +126,49 @@ def I_sensitivity():
     plt.legend()
     plt.show()
     plt.savefig(file_paths["I_sensitivity"] )
+    
+    
+
+def Ib_sensitivity():
+    max_it = 3000            
+    var = [ 5, 10, 15, 20, 40, 80, 160, 320]
+    it = np.arange(0,max_it+1)
+    bsize = 10
+    
+    for i in range(len(var)):    
+        I = var[i]
+        b = generate_synthetic_batches(I)
+        c = scale(b["c"])
+        Y = scale(b["Y"])
+        d_0 = Y.shape[0]
+    
+        print("I:", I)
+        th = initialize_weights(d_0, d, K)
+        
+        if bsize <= I:
+            numB = int(I/bsize)
+            JJ = np.array([])
+            for i in range(numB):
+                dJJ = train(c[i*bsize:(i+1)*bsize], d, d_0, K, h, Y[:,i*bsize:(i+1)*bsize], th, tau, int(max_it/numB), print_it=False)
+                JJ = np.append(JJ,dJJ)
+                """
+                if i != 0:
+                    it = np.append(it,it[-1]+1)
+                """
+                
+        else:
+            JJ = train(c, d, d_0, K, h, Y, th, tau=tau, max_it=max_it, print_it=False) 
+        
+        #plt.plot(it, JJ, label="I: "+ str(I))
+        plt.plot(JJ, label="I: "+ str(I))
+    
+    #plt.yscale("log")
+    plt.title("I Sensitivity Analysis")
+    plt.yscale("log")
+    plt.legend()
+    plt.show()
+    plt.savefig(file_paths["I_sensitivity"] )
+
 
 
 file_paths = {}
@@ -148,8 +190,10 @@ I = 20
 max_it = 300
 tau = 0.25
 
-K_sensitivity()
-tau_sensitivity()
-h_sensitivity()
-d_sensitivity()
-I_sensitivity()
+
+#K_sensitivity()
+#tau_sensitivity()
+#h_sensitivity()
+#d_sensitivity()
+#I_sensitivity()
+Ib_sensitivity()

@@ -20,7 +20,7 @@ def generate_synthetic_batches(I):
     #batch["Y"] = np.array([[1,1],
     #                      [1,2]])
     
-    #batch["Y"] = np.random.uniform(high=2, low=-2, size=(d_0,I) )    
+    batch["Y"] = np.random.uniform(high=2, low=-2, size=(d_0,I) )    
     
     
     batch["c"] = 0.5*batch["Y"][0,:]**2 + 0.5*batch["Y"][1,:]**2
