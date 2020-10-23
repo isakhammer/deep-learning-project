@@ -5,8 +5,11 @@ Created on Fri Oct 23 18:32:12 2020
 
 @author: isakh
 """
+
 from nn_2 import *
-    
+from data import *    
+import matplotlib.pyplot as plt
+import os
 
 def tau_sensitivity():
                 
@@ -25,12 +28,13 @@ def tau_sensitivity():
         JJ = train(c, d, d_0, K, h, Y, th, tau=tau, max_it=max_it)
         plt.plot(it, JJ, label="tau: "+ str(tau))
     
+    plt.savefig(file_paths["tau_sensitivity"] )
     plt.title("Tau Sensitivity Analysis")
     plt.legend()
     plt.show()
     
 
-def layer_sensitivity():
+def K_sensitivity():
              
     b = generate_synthetic_batches(I)
     
@@ -47,9 +51,10 @@ def layer_sensitivity():
         JJ = train(c, d, d_0, K, h, Y, th, tau=tau, max_it=max_it)
         plt.plot(it, JJ, label="K: "+ str(var[i]))
     
-    plt.title("Layer Sensitivity Analysis")
+    plt.title("K Sensitivity Analysis")
     plt.legend()
     plt.show()
+    plt.savefig(file_paths["K_sensitivity"] )
 
     
 
@@ -73,6 +78,7 @@ def h_sensitivity():
     plt.title("h Sensitivity Analysis")
     plt.legend()
     plt.show()
+    plt.savefig(file_paths["h_sensitivity"] )
 
 
 def d_sensitivity():
@@ -92,10 +98,46 @@ def d_sensitivity():
         JJ = train(c, d, d_0, K, h, Y, th, tau=tau, max_it=max_it)
         plt.plot(it, JJ, label="h: "+ str(var[i]))
     
-    #plt.yscale("log")
-    plt.title("k Sensitivity Analysis")
+    plt.title("d Sensitivity Analysis")
     plt.legend()
     plt.show()
+    plt.savefig(file_paths["d_sensitivity"] )
+
+def I_sensitivity():
+    max_it = 300             
+    var = var = [ 5, 10, 15, 20, 40, 80, 160, 320]
+    it = np.arange(0,max_it+1)
+    
+    for i in range(len(var)):    
+        I = var[i]
+        b = generate_synthetic_batches(I)
+        c = scale(b["c"])
+        Y = scale(b["Y"])
+        d_0 = Y.shape[0]
+    
+        print("I:", I)
+        d = var[i]
+        th = initialize_weights(d_0, d, K)
+        JJ = train(c, d, d_0, K, h, Y, th, tau=tau, max_it=max_it, print_it=False)
+        plt.plot(it, JJ, label="I: "+ str(var[i]))
+    
+    #plt.yscale("log")
+    plt.title("I Sensitivity Analysis")
+    plt.yscale("log")
+    plt.legend()
+    plt.show()
+    plt.savefig(file_paths["I_sensitivity"] )
+
+
+file_paths = {}
+file_paths["output"] = os.path.join(os.path.dirname(__file__), "output" ) 
+os.makedirs(file_paths["output"], exist_ok=True) 
+file_paths["K_sensitivity"] = os.path.join(file_paths["output"], "K_sensitivity.png")
+file_paths["tau_sensitivity"] = os.path.join(file_paths["output"], "tau_sensitivity.png")
+file_paths["h_sensitivity"] = os.path.join(file_paths["output"], "h_sensitivity.png")
+file_paths["d_sensitivity"] = os.path.join(file_paths["output"], "d_sensitivity.png")
+file_paths["I_sensitivity"] = os.path.join(file_paths["output"], "I_sensitivity.png")
+
 
 # Default values based on the analysis
 K = 20
@@ -106,7 +148,8 @@ I = 20
 max_it = 300
 tau = 0.25
 
-layer_sensitivity()
+K_sensitivity()
 tau_sensitivity()
 h_sensitivity()
 d_sensitivity()
+I_sensitivity()
