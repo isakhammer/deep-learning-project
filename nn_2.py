@@ -118,7 +118,7 @@ def dJ_func(c, Y, th, d_0, d, K, h):
         dJ_b[k] = (h*(P[k+1]*dsigma) @ np.ones(I))[:,np.newaxis]
     return dJ_w, dJ_mu, dJ_W, dJ_b
 
-def train(c, d, d_0, K, h, Y, th, tau=0.0005, max_it=60, print_it=False):
+def train(c, d, d_0, K, h, Y, th, tau=0.0005, max_it=60, print_it=False, method="gd"):
     # compute Zk
     err = np.inf
     tol = 10**(-3)
@@ -131,15 +131,38 @@ def train(c, d, d_0, K, h, Y, th, tau=0.0005, max_it=60, print_it=False):
     
     JJ[0] = err
     
+    # Adams parameters 
+    v = {} 
+    m = {}
+    beta_1, beta_2 =  0.9, 0.999
+    alpha, epsilon = 0.01, 10**(-8)
     while (itr < max_it ):
         
         Z, Upsilon = F_tilde(Y, th, d_0, d, K, h)
         
         dJ_w, dJ_mu, dJ_W, dJ_b = dJ_func(c, Y, th, d_0, d, K, h)
         
-        th = gradientDesent(K, th, dJ_w, dJ_mu, dJ_W, dJ_b, tau)
+        if (method=="gd"):
+            th = gradientDesent(K, th, dJ_w, dJ_mu, dJ_W, dJ_b, tau)
         
-        err = J_func(Upsilon,c)  
+        elif (method=="adam"):
+            j = itr
+            
+            dJ_w, dJ_mu, dJ_W, dJ_b = dJ_func(c, Y, th, d_0, d, K, h)
+            
+            for key in th:
+                print(dJ)
+            """
+                m[key] = beta_1*m[key] + (1- beta_1)*g
+                v[key] = beta_2*v[key] + (1 - beta_2)*(g*g)
+                mhat = m[key]/(1 - beta_1**j)
+                vhat = v[key]/(1 - beta_2**j)
+                th[key] -= alpha*mhat/(np.square(vhat) + epsilon
+            """
+        else:
+            print("No optimization method")
+        
+        err = J_func(Upsilon, c)  
         
         JJ[itr+1] = err
         
@@ -150,6 +173,7 @@ def train(c, d, d_0, K, h, Y, th, tau=0.0005, max_it=60, print_it=False):
     return JJ
         
 
+import matplotlib.pyplot as plt
     
 def main():
     K = 14
@@ -169,11 +193,13 @@ def main():
     d_0 = Y.shape[0]
     
     th = initialize_weights(d_0, d, K)
-    JJ = train(c, d, d_0, K, h, Y, th, tau=tau, max_it=max_it)
-    
+    JJ = train(c, d, d_0, K, h, Y, th, tau=tau, max_it=max_it, method="adam")
+    it = np.arange(JJ.shape[0])
+    plt.plot(it, JJ)
+    plt.show()
     
 
 #f()
 #tau()
 #layers()
-#main()
+main()
