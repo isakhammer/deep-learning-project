@@ -9,14 +9,14 @@ Created on Thu Oct 22 17:29:57 2020
 import numpy as np
 
 
-def generate_synthetic_batches():
+def generate_synthetic_batches(I):
     
-    batch = {}   
-    I = 20
+    batch = {} 
     
-    d = 2
+    d_0 = 2
+    
         
-    batch["Y"] = np.random.uniform(high=2, low=-2, size=(2,I) )    
+    batch["Y"] = np.random.uniform(high=2, low=-2, size=(d_0,I) )    
     batch["c"] = 0.5*batch["Y"][0,:]**2 + 0.5*batch["Y"][1,:]**2
     batch["c"] = batch["c"][:, np.newaxis]
         
@@ -80,7 +80,31 @@ def scale(x, alpha=-10, beta=0):
     return ( (b - x)*alpha + (x - a)*beta)/(b - a)
 
 
-def train(c, d, d_0, K, h, Y, th, tau=0.0001):
+
+def gradientDesent(K, th, dJ_w, dJ_mu, dJ_W, dJ_b, tau):
+    
+    th["mu"] = th["mu"] - tau*dJ_mu
+    th["w"] = th["w"] - tau*dJ_w
+    for k in range(K):
+        th["W"+str(k)] = th["W"+str(k)] -  tau*dJ_W[k]
+        th["b"+str(k)] = th["b"+str(k)] -  tau*dJ_b[k]
+    
+    return th
+
+def adams(K, th, dJ_w, dJ_mu, dJ_W, dJ_b, tau):
+    beta1 = 0.9
+    beta2 = 0.999
+    alpha = 0.01
+    epsilon = 1e-8
+    v0 = 0
+    m0 = 0
+    
+    
+    return th
+
+
+
+def train(c, d, d_0, K, h, Y, th, tau=0.0005):
     # compute Zk
     err = np.inf
     tol = 10**(-3)
@@ -117,13 +141,7 @@ def train(c, d, d_0, K, h, Y, th, tau=0.0001):
             dJ_W[k] = h*(P[k+1]*dsigma) @ Z[k].T
             dJ_b[k] = (h*(P[k+1]*dsigma) @ np.ones(I))[:,np.newaxis]
             
-            
-        th["mu"] = th["mu"] - tau*dJ_mu
-        th["w"] = th["w"] - tau*dJ_w
-        for k in range(K):
-            th["W"+str(k)] = th["W"+str(k)] -  tau*dJ_W[k]
-            th["b"+str(k)] = th["b"+str(k)] -  tau*dJ_b[k]
-            
+        th = gradientDesent(K, th, dJ_w, dJ_mu, dJ_W, dJ_b, tau)
         
         err = J_func(Upsilon,c)  
         itr += 1
@@ -139,17 +157,20 @@ def train(c, d, d_0, K, h, Y, th, tau=0.0001):
 def main():
         
     K = 10
-    h = 0.5
+    h = 1/100
     d_0 = 2
     d = 4
+    I = 20
                 
-    b = generate_synthetic_batches()
+    b = generate_synthetic_batches(I)
     c = b["c"]
+    Y = b["Y"]
+    d_0 = Y.shape[0]
     th = initialize_weights(d_0, d, K)
     
 
     
-    train(c, d, d_0, K, h, b["Y"], th)
+    train(c, d, d_0, K, h, Y, th)
     
     
     

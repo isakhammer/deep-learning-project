@@ -18,7 +18,10 @@ def sigma(x, derivative=False):
 
 def eta(x, derivative=False):
     if (derivative):
-        return (1/4)*(1 / np.cosh(x)**2 )
+        print(x[0])
+        a = (1/4)*(1 / np.cosh(x)**2 )
+        print(a[0])
+        return a
     return 0.5*(1 + np.tanh(x*0.5))
 
 
@@ -40,16 +43,15 @@ def F_tilde(Y, th, d_0, d_k, K, h):
     Z[0] = I_d@Y
     
     
-    Z_hat= th["W"+str(0)]@Z[0]+th["b"+str(0)]
-    
-    Z[1] = Z[0] + h*sigma(Z_hat, False)
-    
+    Z_hat= th["W0"]@Z[0]+th["b0"]
     dsigma[0] = sigma( Z_hat, True)
     
-    for k in range(2, K+1):
-        Z_hat = th["W"+str(k-1)]@Z[k-1]+th["b"+str(k-1)]
-        Z[k] = Z[k-1] + h*sigma(Z_hat, False)
-        dsigma[k-1] = sigma(Z_hat, True)
+    #Z[1] = Z[0] + h*sigma(Z_hat, False)
+    
+    for k in range(K):
+        Z_hat = th["W"+str(k)]@Z[k]+th["b"+str(k)]
+        Z[k+1] = Z[k] + h*sigma(Z_hat, False)
+        dsigma[k+1] = sigma(Z_hat, True)
     
     #Z_hat = th["W"+str(K)]@Z[K]+th["b"+str(K)]
     #dsigma[K] = sigma(Z_hat, True)
@@ -66,7 +68,10 @@ def grad_J(c ,Y, th, d_0, d_k, K, h):
     I =  Y.shape[1]
     
     # Equation 5
-    Z, Upsilon, dUpsilon, dsigma = F_tilde(Y, th, d_0, d_k, K, h)    
+    Z, Upsilon, dUpsilon, dsigma = F_tilde(Y, th, d_0, d_k, K, h) 
+    
+    #print(Z[K])
+    #print(dUpsilon)
     
     # Equation 6
     J = 0.5*np.linalg.norm(Upsilon - c)**2
@@ -208,8 +213,7 @@ def gradient_descent(batches, th, d_0, d_k, K, h, name, epochs):
     #for i in range(epochs):
     J = np.inf
     i = 0
-    while i <= epochs :#and J < tol:
-        i += 1
+    while i <= epochs and J > tol:
         
         for index in batches:
             Y = batches[index][Y_key]
@@ -219,7 +223,13 @@ def gradient_descent(batches, th, d_0, d_k, K, h, name, epochs):
             
             for key in th:
                 th[key] -= tau*dJ[key]
+                """
+                if i == 1:
+                    print(dJ[key])
+                    print(th[key])
+                """
         print("Gradient descent - Variable: ", name, " Epoch : ", i, " Cost:", J )
+        i += 1
     return th, J
 
 def adams_method(batches, th, d_0, d_k, K, h, name, epochs):
@@ -328,9 +338,9 @@ def initialize_weights(d_0, d_k, K):
 
 def main():
     
-    K = 3
-    h = 1/2
-    d_k = 3    
+    K = 10
+    h = 1/10
+    d_k = 6    
     epochs = 10
     
     #batches = import_batches_example() 
