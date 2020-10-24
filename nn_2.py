@@ -7,6 +7,7 @@ Created on Thu Oct 22 17:29:57 2020
 """
 
 import numpy as np
+import matplotlib.pyplot as plt
 
 from data import generate_synthetic_batches
 
@@ -65,7 +66,12 @@ def scale(x, alpha=0, beta=1):
     
     a = np.min(x)
     b = np.max(x)
-    return ( (b - x)*alpha + (x - a)*beta)/(b - a)
+    return ( (b - x)*alpha + (x - a)*beta)/(b - a), a, b, alpha, beta
+
+def  invscale(x, a, b, alpha, beta):
+    
+    return ((x+alpha)*b - (x-beta)*a) / (beta-alpha)
+    
 
 
 
@@ -96,7 +102,7 @@ def n(x):
 def train(c, d, d_0, K, h, Y, th, tau=0.0005, max_it=60, print_it=False):
     # compute Zk
     err = np.inf
-    tol = 10**(-3)
+    tol = 0.01
     
     
     itr = 0
@@ -106,7 +112,7 @@ def train(c, d, d_0, K, h, Y, th, tau=0.0005, max_it=60, print_it=False):
     
     JJ[0] = err
     
-    while (itr < max_it ):
+    while (itr < max_it ) and (err > tol):
         
         Z, Upsilon = F_tilde(Y, th, d_0, d, K, h)
         I = Upsilon.shape[0]
@@ -151,17 +157,19 @@ def train(c, d, d_0, K, h, Y, th, tau=0.0005, max_it=60, print_it=False):
 def main():
     K = 20
     h = 0.1
-    d_0 = 2
+    I = 80
     tau = 0.25
-    max_it = 300
+    max_it = 30000
                 
-    b = generate_synthetic_batches(I,"1cos")
+    b = generate_synthetic_batches(I,"1sqr")
     
     
-    c = b["c"]
+    
     Y = b["Y"]
-    #c = scale(b["c"])
-    #Y = scale(b["Y"])
+    #Y,a,b,alfa,beta = scale(b["Y"])
+    #c = b["c"]
+    c,a,b,alfa,beta = scale(b["c"])
+    
     d_0 = Y.shape[0]
     d = d_0*2
     
@@ -169,11 +177,12 @@ def main():
     th = initialize_weights(d_0, d, K)
     JJ, th = train(c, d, d_0, K, h, Y, th, tau=tau, max_it=max_it)
     
-    x = np.linspace(-np.pi/3, np.pi/3, 200)
+    x = np.linspace(-2, 2, 200)
     x = np.reshape(x,(1,len(x)))
-    y = 1-np.cos(x)
-    #y = 1/2 *x**2
+    #y = 1-np.cos(x)
+    y = 1/2 *x**2
     z, yhat = F_tilde(x, th, d_0, d, K, h)
+    yhat = invscale(yhat, a, b, alpha, beta)
     yhat = yhat.T
     
     plt.plot(x.T,y.T)

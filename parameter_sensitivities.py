@@ -15,8 +15,9 @@ def tau_sensitivity():
                 
     b = generate_synthetic_batches(I)
     
-    c = scale(b["c"])
-    Y = scale(b["Y"])
+    c, sa, sb, salpha, sbeta = scale(b["c"])
+    Y = b["Y"]
+    #Y = scale(b["Y"])
     d_0 = Y.shape[0]
     
     var = [ 2, 1, 0.5, 0.25, 0.1, 0.01]
@@ -38,8 +39,9 @@ def K_sensitivity():
              
     b = generate_synthetic_batches(I)
     
-    c = scale(b["c"])
-    Y = scale(b["Y"])
+    c, sa, sb, salpha, sbeta = scale(b["c"])
+    Y = b["Y"]
+    #Y = scale(b["Y"])
     d_0 = Y.shape[0]
     
     var = var = [ 4, 6, 10, 14, 17, 30]
@@ -62,8 +64,9 @@ def h_sensitivity():
              
     b = generate_synthetic_batches(I)
     
-    c = scale(b["c"])
-    Y = scale(b["Y"])
+    c, sa, sb, salpha, sbeta = scale(b["c"])
+    Y = b["Y"]
+    #Y = scale(b["Y"])
     d_0 = Y.shape[0]
     
     var = var = [ 0.14, 0.12, 0.1, 0.07, 0.05, 0.01]
@@ -85,8 +88,9 @@ def d_sensitivity():
              
     b = generate_synthetic_batches(I)
     
-    c = scale(b["c"])
-    Y = scale(b["Y"])
+    c, sa, sb, salpha, sbeta = scale(b["c"])
+    Y = b["Y"]
+    #Y = scale(b["Y"])
     d_0 = Y.shape[0]
     
     var = var = [ 2, 3, 4, 5,6,7,8, 10 ]
@@ -104,15 +108,16 @@ def d_sensitivity():
     plt.savefig(file_paths["d_sensitivity"] )
 
 def I_sensitivity():
-    max_it = 300             
+    max_it = 3000             
     var = var = [5, 10, 15, 20, 40, 80, 160, 320]
     it = np.arange(0,max_it+1)
     
     for i in range(len(var)):    
         I = var[i]
         b = generate_synthetic_batches(I)
-        c = scale(b["c"])
-        Y = scale(b["Y"])
+        c, sa, sb, salpha, sbeta = scale(b["c"])
+        Y = b["Y"]
+        #Y = scale(b["Y"])
         d_0 = Y.shape[0]
     
         print("I:", I)
@@ -138,8 +143,9 @@ def Ib_sensitivity():
     for i in range(len(var)):    
         I = var[i]
         b = generate_synthetic_batches(I)
-        c = scale(b["c"])
-        Y = scale(b["Y"])
+        c, sa, sb, salpha, sbeta = scale(b["c"])
+        Y = b["Y"]
+        #Y = scale(b["Y"])
         d_0 = Y.shape[0]
     
         print("I:", I)
@@ -188,7 +194,7 @@ d_0 = 2
 d = 4
 I = 20
 max_it = 300
-tau = 0.25
+tau = 0.1
 
 
 K_sensitivity()
