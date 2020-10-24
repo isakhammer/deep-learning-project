@@ -18,7 +18,7 @@ def F_tilde(Y, th, d_0, d, K, h):
     Z[0] = I_d@Y
 
     for k in range(K):
-        Z_hat = th["W"+str(k)]@Z[k]+th["b"+str(k)]
+        Z_hat = th["W"][k]@Z[k]+th["b"][k]
         Z[k+1] = Z[k] + h*sigma(Z_hat, False)
     
     Upsilon = eta(Z[K].T@th["w"]+th["mu"])
@@ -29,9 +29,12 @@ def F_tilde(Y, th, d_0, d, K, h):
 def initialize_weights(d_0, d, K):
     th = {}
     
+    th["W"] = np.zeros((K, d, d))
+    th["b"] = np.zeros((K, d, 1))
+    
     for i in range(K):
-        th["W"+str(i)] = np.identity(d)
-        th["b"+str(i)] = np.zeros((d, 1))
+        th["W"][i] = np.identity(d)
+        th["b"][i] = np.zeros((d, 1))
             
     th["w"] = np.ones((d, 1 ))
     th["mu"] = np.zeros((1, 1))
@@ -74,8 +77,8 @@ def gradientDesent(K, th, dJ_w, dJ_mu, dJ_W, dJ_b, tau):
     th["mu"] = th["mu"] - tau*dJ_mu
     th["w"] = th["w"] - tau*dJ_w
     for k in range(K):
-        th["W"+str(k)] = th["W"+str(k)] -  tau*dJ_W[k]
-        th["b"+str(k)] = th["b"+str(k)] -  tau*dJ_b[k]
+        th["W"][k] = th["W"][k] -  tau*dJ_W[k]
+        th["b"][k] = th["b"][k] -  tau*dJ_b[k]
     
     return th
 
@@ -106,13 +109,13 @@ def dJ_func(c, Y, th, d_0, d, K, h):
     dJ_w = Z[K] @ ((Upsilon - c) * etahat)
         
     for k in range(K, 0, -1):
-        P[k-1] = P[k] + h*th["W"+str(k-1)].T @ (sigma(th["W"+str(k-1)]@Z[k-1]+np.outer(th["b"+str(k-1)],np.ones(I)), True) * P[k])
+        P[k-1] = P[k] + h*th["W"][k-1].T @ (sigma(th["W"][k-1]@Z[k-1]+np.outer(th["b"][k-1],np.ones(I)), True) * P[k])
             
     dJ_W = np.zeros((K, d, d))
     dJ_b = np.zeros((K, d, 1))
         
     for k in range(K):
-        dsigma = sigma(th["W"+str(k)]@Z[k]+np.outer(th["b"+str(k)],np.ones(I)),True)
+        dsigma = sigma(th["W"][k]@Z[k]+np.outer(th["b"][k],np.ones(I)),True)
             
         dJ_W[k] = h*(P[k+1]*dsigma) @ Z[k].T
         dJ_b[k] = (h*(P[k+1]*dsigma) @ np.ones(I))[:,np.newaxis]
