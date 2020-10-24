@@ -83,19 +83,6 @@ def gradientDesent(K, th, dJ, tau):
     return th
 
 
-def adams(K, th, dJ_w, dJ_mu, dJ_W, dJ_b, tau):
-    beta1 = 0.9
-    beta2 = 0.999
-    alpha = 0.01
-    epsilon = 1e-8
-    v0 = 0
-    m0 = 0
-    
-    return th
-
-def n(x):
-    return np.linalg.norm(x)
-
 def dJ_func(c, Y, th, d_0, d, K, h):
     Z, Upsilon = F_tilde(Y, th, d_0, d, K, h)
     I = Upsilon.shape[0]
