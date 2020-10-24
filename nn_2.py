@@ -138,34 +138,47 @@ def train(c, d, d_0, K, h, Y, th, tau=0.0005, max_it=60, print_it=False, method=
     
     JJ[0] = err
     
-    # Adams parameters 
-    v = {} 
+    # Adam parameters 
     m = {}
+    m["mu"] = np.zeros(th["mu"].shape)
+    m["w"] = np.zeros(th["w"].shape)
+    m["W"] = np.zeros(th["W"].shape)
+    m["b"] = np.zeros(th["b"].shape)
+    v = m
+    
     beta_1, beta_2 =  0.9, 0.999
     alpha, epsilon = 0.01, 10**(-8)
+    
+    def adam_algebra(th, dJ, v, m, key):
+        g = dJ[key] 
+        m[key] = beta_1*m[key] + (1- beta_1)*g
+        v[key] = beta_2*v[key] + (1 - beta_2)*(g*g)
+        mhat = m[key]/(1 - beta_1**j)
+        vhat = v[key]/(1 - beta_2**j)
+        th[key] -= alpha*mhat/(np.square(vhat) + epsilon)
+        return th, v, m
+    
+    
     while (itr < max_it ):
         
         Z, Upsilon = F_tilde(Y, th, d_0, d, K, h)
         
-        dJ = dJ_func(c, Y, th, d_0, d, K, h)
+        
         
         if (method=="gd"):
+            dJ = dJ_func(c, Y, th, d_0, d, K, h)
             th = gradientDesent(K, th, dJ, tau)
         
         elif (method=="adam"):
             j = itr
             
-            dJ_w, dJ_mu, dJ_W, dJ_b = dJ_func(c, Y, th, d_0, d, K, h)
+            dJ = dJ_func(c, Y, th, d_0, d, K, h)
             
-            for key in th:
-                print(dJ)
-            """
-                m[key] = beta_1*m[key] + (1- beta_1)*g
-                v[key] = beta_2*v[key] + (1 - beta_2)*(g*g)
-                mhat = m[key]/(1 - beta_1**j)
-                vhat = v[key]/(1 - beta_2**j)
-                th[key] -= alpha*mhat/(np.square(vhat) + epsilon
-            """
+            th, v, m = adam_algebra(th, dJ, v, m, key="mu")
+            th, v, m = adam_algebra(th, dJ, v, m, key="w")
+            th, v, m = adam_algebra(th, dJ, v, m, key="W")
+            th, v, m = adam_algebra(th, dJ, v, m, key="b")
+            
         else:
             print("No optimization method")
         
