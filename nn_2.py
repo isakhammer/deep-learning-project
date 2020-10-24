@@ -84,9 +84,9 @@ def gradientDesent(K, th, dJ, tau):
     
     th["mu"] = th["mu"] - tau*dJ["mu"]
     th["w"] = th["w"] - tau*dJ["w"]
-    for k in range(K):
-        th["W"][k] = th["W"][k] -  tau*dJ["W"][k]
-        th["b"][k] = th["b"][k] -  tau*dJ["b"][k]
+    
+    th["W"] = th["W"] -  tau*dJ["W"]
+    th["b"] = th["b"] -  tau*dJ["b"]
     
     return th
 
