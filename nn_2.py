@@ -144,29 +144,40 @@ def train(c, d, d_0, K, h, Y, th, tau=0.0005, max_it=60, print_it=False):
         if(itr%50 == 0) and (print_it == True):
             print(itr,err)
         
-    return JJ
+    return JJ , th
         
 
     
 def main():
-    K = 14
-    h = 1/10
+    K = 20
+    h = 0.1
     d_0 = 2
-    d = 4
-    I = 20
-    max_it = 1000
-    tau = 0.5
+    tau = 0.25
+    max_it = 300
                 
-    b = generate_synthetic_batches(I)
+    b = generate_synthetic_batches(I,"1cos")
     
-    #c = b["c"]
-    #Y = b["Y"]
-    c = scale(b["c"])
-    Y = scale(b["Y"])
+    
+    c = b["c"]
+    Y = b["Y"]
+    #c = scale(b["c"])
+    #Y = scale(b["Y"])
     d_0 = Y.shape[0]
+    d = d_0*2
+    
     
     th = initialize_weights(d_0, d, K)
-    JJ = train(c, d, d_0, K, h, Y, th, tau=tau, max_it=max_it)
+    JJ, th = train(c, d, d_0, K, h, Y, th, tau=tau, max_it=max_it)
+    
+    x = np.linspace(-np.pi/3, np.pi/3, 200)
+    x = np.reshape(x,(1,len(x)))
+    y = 1-np.cos(x)
+    #y = 1/2 *x**2
+    z, yhat = F_tilde(x, th, d_0, d, K, h)
+    yhat = yhat.T
+    
+    plt.plot(x.T,y.T)
+    plt.plot(x.T,yhat.T)
     
     
 
