@@ -7,7 +7,9 @@ Created on Thu Oct 22 17:29:57 2020
 """
 
 import numpy as np
+from numpy.linalg import norm as n
 from copy import deepcopy as copy 
+import sys
 
 from data import generate_synthetic_batches
 
