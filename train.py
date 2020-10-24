@@ -139,9 +139,9 @@ def import_batches():
         batch = {}
         batch["t"] = batch_data[:, 0, np.newaxis]
         batch["Y_q"] = batch_data[:, 1:4].T
-        batch["Y_p"] = batch_data[:, 4:7].T
-        batch["c_p"] = batch_data[:, 7, np.newaxis] 
-        batch["c_q"] = batch_data[:, 8, np.newaxis] # potential energy
+        #batch["Y_p"] = batch_data[:, 4:7].T
+        #batch["c_p"] = batch_data[:, 7, np.newaxis] 
+        #batch["c_q"] = batch_data[:, 8, np.newaxis] # potential energy
         
         batches[i] = batch
 

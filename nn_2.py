@@ -152,15 +152,74 @@ def train(c, d, d_0, K, h, Y, th, tau=0.0005, max_it=60, print_it=False):
         
     return JJ , th
         
-
+def stocgradient(c, d, d_0, K, h, Y, th, tau, max_it , bsize):
+    
+    indexes = np.array(range(Y.shape[1]))
+    
+    JJ = np.array([])
+    
+    itr = 0
+    
+    while len(indexes) > 0 and itr < 500:
+        print(itr,len(indexes))
+        itr +=1
+        if len(indexes) >= bsize:
+            bsliceI = np.random.choice( indexes, bsize)
+            Yslice = Y[:,bsliceI]
+            cslice = c[bsliceI]
+            
+            dJJ, th = train(cslice, d, d_0, K, h, Yslice, th, tau, max_it)
+            
+            JJ = np.append(JJ,dJJ)
+            
+            indexes = np.delete(indexes,bsliceI)
+            
+        else:
+            Yslice = Y[:,indexes]
+            cslice = c[indexes]
+            
+            
+            dJJ, th = train(cslice, d, d_0, K, h, Yslice, th, tau, max_it)
+            
+            JJ = np.append(JJ,dJJ)
+            
+            indexes = np.delete(indexes,indexes)
+            
+    return JJ, th
     
 def main():
     K = 20
     h = 0.1
     I = 80
-    tau = 0.25
-    max_it = 30000
-                
+    max_it = 300
+    tau = 0.1
+    
+    batch = import_one_batch()
+    
+    Y = batch["Y_q"]
+    c,a,b,alfa,beta = scale(batch["c_q"])
+    d_0 = Y.shape[0]
+    d = d_0*2
+    
+    
+    th = initialize_weights(d_0, d, K)
+    #JJ, th = train(c, d, d_0, K, h, Y, th, tau, max_it)
+    
+    JJ, th = stocgradient(c, d, d_0, K, h, Y, th, tau, max_it , 100)
+    
+    #plt.plot(JJ)
+    
+    z, yhat = F_tilde(Y, th, d_0, d, K, h)
+    
+    #y = invscale(yhat, a, b, alpha, beta)
+    
+    plt.plot(yhat)
+    plt.plot(c)
+    
+    
+    
+
+    """            
     b = generate_synthetic_batches(I,"1sqr")
     
     
@@ -187,10 +246,11 @@ def main():
     
     plt.plot(x.T,y.T)
     plt.plot(x.T,yhat.T)
+    """
     
     
 
 #f()
 #tau()
 #layers()
-#main()
+main()
