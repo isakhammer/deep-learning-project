@@ -194,7 +194,9 @@ def main():
     max_it = 300
     tau = 0.1
     
-    batch = import_one_batch()
+    batches = import_batches()
+    batch = batches[0]
+    testbatch = batches[1]
     
     Y = batch["Y_q"]
     c,a,b,alfa,beta = scale(batch["c_q"])
@@ -209,12 +211,15 @@ def main():
     
     #plt.plot(JJ)
     
-    z, yhat = F_tilde(Y, th, d_0, d, K, h)
+    tY = testbatch["Y_q"]
+    tc,a,b,alfa,beta = scale(batch["c_q"])
     
-    #y = invscale(yhat, a, b, alpha, beta)
+    z, yhat = F_tilde(tY, th, d_0, d, K, h)
+    
+    #y = invscale(yhat, a, b, alpha, beta) 
     
     plt.plot(yhat)
-    plt.plot(c)
+    plt.plot(tc)
     
     
     
