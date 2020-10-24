@@ -135,7 +135,7 @@ def train(c, d, d_0, K, h, Y, th, tau=0.0005, max_it=60, print_it=False, method=
     m["w"] = np.zeros(th["w"].shape)
     m["W"] = np.zeros(th["W"].shape)
     m["b"] = np.zeros(th["b"].shape)
-    v = m
+    v = copy(m)
     
     beta_1, beta_2 =  0.9, 0.999
     alpha, epsilon = 0.01, 10**(-8)
