@@ -125,6 +125,9 @@ def dJ_func(c, Y, th, d_0, d, K, h):
 
     return dJ
 
+
+
+
 def train(c, d, d_0, K, h, Y, th, tau=0.0005, max_it=60, print_it=False, method="gd"):
     # compute Zk
     err = np.inf
@@ -149,13 +152,14 @@ def train(c, d, d_0, K, h, Y, th, tau=0.0005, max_it=60, print_it=False, method=
     beta_1, beta_2 =  0.9, 0.999
     alpha, epsilon = 0.01, 10**(-8)
     
-    def adam_algebra(th, dJ, v, m, key):
+    def adam_algebra(th, dJ, v, m, key, j):
         g = dJ[key] 
         m[key] = beta_1*m[key] + (1- beta_1)*g
         v[key] = beta_2*v[key] + (1 - beta_2)*(g*g)
-        mhat = m[key]/(1 - beta_1**j)
-        vhat = v[key]/(1 - beta_2**j)
+        mhat = m[key]/(1 - beta_1**(j+1))
+        vhat = v[key]/(1 - beta_2**(j+1))
         th[key] -= alpha*mhat/(np.square(vhat) + epsilon)
+        #print("hat",  vhat, v[key], mhat, m[key], j+1 )
         return th, v, m
     
     
@@ -174,10 +178,10 @@ def train(c, d, d_0, K, h, Y, th, tau=0.0005, max_it=60, print_it=False, method=
             
             dJ = dJ_func(c, Y, th, d_0, d, K, h)
             
-            th, v, m = adam_algebra(th, dJ, v, m, key="mu")
-            th, v, m = adam_algebra(th, dJ, v, m, key="w")
-            th, v, m = adam_algebra(th, dJ, v, m, key="W")
-            th, v, m = adam_algebra(th, dJ, v, m, key="b")
+            th, v, m = adam_algebra(th, dJ, v, m, "mu", j)
+            th, v, m = adam_algebra(th, dJ, v, m, "w", j)
+            th, v, m = adam_algebra(th, dJ, v, m, "W", j)
+            th, v, m = adam_algebra(th, dJ, v, m, "b", j)
             
         else:
             print("No optimization method")
@@ -213,7 +217,8 @@ def main():
     d_0 = Y.shape[0]
     
     th = initialize_weights(d_0, d, K)
-    JJ = train(c, d, d_0, K, h, Y, th, tau=tau, max_it=max_it, method="gd")
+    #JJ = train(c, d, d_0, K, h, Y, th, tau=tau, max_it=max_it, method="gd")
+    JJ = train(c, d, d_0, K, h, Y, th, tau=tau, max_it=max_it, method="adam")
     it = np.arange(JJ.shape[0])
     plt.plot(it, JJ)
     plt.show()
