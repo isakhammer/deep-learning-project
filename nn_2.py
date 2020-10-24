@@ -196,7 +196,7 @@ def main():
     d_0 = Y.shape[0]
     
     th = initialize_weights(d_0, d, K)
-    JJ = train(c, d, d_0, K, h, Y, th, tau=tau, max_it=max_it, method="adam")
+    JJ = train(c, d, d_0, K, h, Y, th, tau=tau, max_it=max_it, method="gd")
     it = np.arange(JJ.shape[0])
     plt.plot(it, JJ)
     plt.show()
