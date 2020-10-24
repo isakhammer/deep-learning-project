@@ -10,6 +10,7 @@ import numpy as np
 from numpy.linalg import norm as n
 from copy import deepcopy as copy 
 import sys
+import matplotlib.pyplot as plt
 
 from data import generate_synthetic_batches
 
@@ -71,8 +72,12 @@ def scale(x, alpha=0, beta=1):
     
     a = np.min(x)
     b = np.max(x)
-    return ( (b - x)*alpha + (x - a)*beta)/(b - a)
+    return ( (b - x)*alpha + (x - a)*beta)/(b - a), a, b, alpha, beta
 
+def  invscale(x, a, b, alpha, beta):
+    
+    return ((x+alpha)*b - (x-beta)*a) / (beta-alpha)
+    
 
 
 def gradientDesent(K, th, dJ, tau):
@@ -121,7 +126,7 @@ def dJ_func(c, Y, th, d_0, d, K, h):
 def train(c, d, d_0, K, h, Y, th, tau=0.0005, max_it=60, print_it=False, method="gd"):
     # compute Zk
     err = np.inf
-    tol = 10**(-3)
+    tol = 0.01
     
     
     itr = 0
@@ -184,27 +189,30 @@ def train(c, d, d_0, K, h, Y, th, tau=0.0005, max_it=60, print_it=False, method=
         if(itr%50 == 0) and (print_it == True):
             print(itr,err)
         
-    return JJ
+    return JJ , th
         
 
 import matplotlib.pyplot as plt
     
 def main():
-    K = 14
-    h = 1/10
-    d_0 = 2
-    d = 4
-    I = 20
-    max_it = 1000
-    tau = 0.5
+    K = 20
+    h = 0.1
+    I = 80
+    tau = 0.25
+    max_it = 30000
                 
-    b = generate_synthetic_batches(I)
+    b = generate_synthetic_batches(I,"1sqr")
     
+    
+    
+    Y = b["Y"]
+    #Y,a,b,alfa,beta = scale(b["Y"])
     #c = b["c"]
-    #Y = b["Y"]
-    c = scale(b["c"])
-    Y = scale(b["Y"])
+    c,a,b,alfa,beta = scale(b["c"])
+    
     d_0 = Y.shape[0]
+    d = d_0*2
+    
     
     th = initialize_weights(d_0, d, K)
     #JJ = train(c, d, d_0, K, h, Y, th, tau=tau, max_it=max_it, method="gd")
@@ -212,6 +220,19 @@ def main():
     it = np.arange(JJ.shape[0])
     plt.plot(it, JJ)
     plt.show()
+    JJ, th = train(c, d, d_0, K, h, Y, th, tau=tau, max_it=max_it)
+    
+    x = np.linspace(-2, 2, 200)
+    x = np.reshape(x,(1,len(x)))
+    #y = 1-np.cos(x)
+    y = 1/2 *x**2
+    z, yhat = F_tilde(x, th, d_0, d, K, h)
+    yhat = invscale(yhat, a, b, alpha, beta)
+    yhat = yhat.T
+    
+    plt.plot(x.T,y.T)
+    plt.plot(x.T,yhat.T)
+    
     
 
 #f()
