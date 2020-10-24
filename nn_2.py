@@ -198,11 +198,10 @@ def main_magnus():
     h = 0.1
     I = 80
     tau = 0.25
-    max_it = 300
-                
+    max_it = 3000
+    #method="adam"            
+    method="gd"            
     b = generate_synthetic_batches(I,"1sqr")
-    
-    
     
     Y = b["Y"]
     #Y,a,b,alfa,beta = scale(b["Y"])
@@ -214,7 +213,7 @@ def main_magnus():
     
     
     th = initialize_weights(d_0, d, K)
-    JJ, th = train(c, d, d_0, K, h, Y, th, tau=tau, max_it=max_it)
+    JJ, th = train(c, d, d_0, K, h, Y, th, tau=tau, max_it=max_it, method=method)
     x = np.linspace(-2, 2, 200)
     x = np.reshape(x,(1,len(x)))
     #y = 1-np.cos(x)
