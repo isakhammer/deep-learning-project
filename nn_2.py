@@ -71,17 +71,7 @@ def scale(x, alpha=0, beta=1):
     return ( (b - x)*alpha + (x - a)*beta)/(b - a)
 
 
-""""
-def gradientDesent(K, th, dJ_w, dJ_mu, dJ_W, dJ_b, tau):
-    
-    th["mu"] = th["mu"] - tau*dJ_mu
-    th["w"] = th["w"] - tau*dJ_w
-    for k in range(K):
-        th["W"][k] = th["W"][k] -  tau*dJ_W[k]
-        th["b"][k] = th["b"][k] -  tau*dJ_b[k]
-    
-    return th
-"""
+
 def gradientDesent(K, th, dJ, tau):
     
     th["mu"] = th["mu"] - tau*dJ["mu"]
@@ -132,7 +122,7 @@ def dJ_func(c, Y, th, d_0, d, K, h):
         dJ_b[k] = (h*(P[k+1]*dsigma) @ np.ones(I))[:,np.newaxis]
     dJ = {}
     dJ["w"], dJ["mu"], dJ["W"], dJ["b"] = dJ_w, dJ_mu, dJ_W, dJ_b
-#    return dJ_w, dJ_mu, dJ_W, dJ_b
+
     return dJ
 
 def train(c, d, d_0, K, h, Y, th, tau=0.0005, max_it=60, print_it=False, method="gd"):
@@ -158,10 +148,8 @@ def train(c, d, d_0, K, h, Y, th, tau=0.0005, max_it=60, print_it=False, method=
         Z, Upsilon = F_tilde(Y, th, d_0, d, K, h)
         
         dJ = dJ_func(c, Y, th, d_0, d, K, h)
-        #dJ_w, dJ_mu, dJ_W, dJ_b = dJ_func(c, Y, th, d_0, d, K, h)
         
         if (method=="gd"):
-            #th = gradientDesent(K, th, dJ_w, dJ_mu, dJ_W, dJ_b, tau)
             th = gradientDesent(K, th, dJ, tau)
         
         elif (method=="adam"):
