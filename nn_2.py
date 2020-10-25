@@ -7,6 +7,7 @@ Created on Thu Oct 22 17:29:57 2020
 """
 
 import numpy as np
+import matplotlib.pyplot as plt
 
 from data import generate_synthetic_batches
 
@@ -65,7 +66,12 @@ def scale(x, alpha=0, beta=1):
     
     a = np.min(x)
     b = np.max(x)
-    return ( (b - x)*alpha + (x - a)*beta)/(b - a)
+    return ( (b - x)*alpha + (x - a)*beta)/(b - a), a, b, alpha, beta
+
+def  invscale(x, a, b, alpha, beta):
+    
+    return ((x+alpha)*b - (x-beta)*a) / (beta-alpha)
+    
 
 
 
@@ -96,7 +102,7 @@ def n(x):
 def train(c, d, d_0, K, h, Y, th, tau=0.0005, max_it=60, print_it=False):
     # compute Zk
     err = np.inf
-    tol = 10**(-3)
+    tol = 0.01
     
     
     itr = 0
@@ -106,7 +112,7 @@ def train(c, d, d_0, K, h, Y, th, tau=0.0005, max_it=60, print_it=False):
     
     JJ[0] = err
     
-    while (itr < max_it ):
+    while (itr < max_it ) and (err > tol):
         
         Z, Upsilon = F_tilde(Y, th, d_0, d, K, h)
         I = Upsilon.shape[0]
@@ -144,33 +150,112 @@ def train(c, d, d_0, K, h, Y, th, tau=0.0005, max_it=60, print_it=False):
         if(itr%50 == 0) and (print_it == True):
             print(itr,err)
         
-    return JJ
+    return JJ , th
         
-
+def stocgradient(c, d, d_0, K, h, Y, th, tau, max_it , bsize):
+    
+    indexes = np.array(range(Y.shape[1]))
+    
+    JJ = np.array([])
+    
+    itr = 0
+    
+    while len(indexes) > 0 and itr < 500:
+        print(itr,len(indexes))
+        itr +=1
+        if len(indexes) >= bsize:
+            bsliceI = np.random.choice( indexes, bsize)
+            Yslice = Y[:,bsliceI]
+            cslice = c[bsliceI]
+            
+            dJJ, th = train(cslice, d, d_0, K, h, Yslice, th, tau, max_it)
+            
+            JJ = np.append(JJ,dJJ)
+            
+            indexes = np.delete(indexes,bsliceI)
+            
+        else:
+            Yslice = Y[:,indexes]
+            cslice = c[indexes]
+            
+            
+            dJJ, th = train(cslice, d, d_0, K, h, Yslice, th, tau, max_it)
+            
+            JJ = np.append(JJ,dJJ)
+            
+            indexes = np.delete(indexes,indexes)
+            
+    return JJ, th
     
 def main():
-    K = 14
-    h = 1/10
-    d_0 = 2
-    d = 4
-    I = 20
-    max_it = 1000
-    tau = 0.5
-                
-    b = generate_synthetic_batches(I)
+    K = 20
+    h = 0.1
+    I = 80
+    max_it = 300
+    tau = 0.1
     
-    #c = b["c"]
-    #Y = b["Y"]
-    c = scale(b["c"])
-    Y = scale(b["Y"])
+    batches = import_batches()
+    batch = batches[0]
+    testbatch = batches[1]
+    
+    Y = batch["Y_q"]
+    c,a,b,alfa,beta = scale(batch["c_q"])
     d_0 = Y.shape[0]
+    d = d_0*2
+    
     
     th = initialize_weights(d_0, d, K)
-    JJ = train(c, d, d_0, K, h, Y, th, tau=tau, max_it=max_it)
+    #JJ, th = train(c, d, d_0, K, h, Y, th, tau, max_it)
+    
+    JJ, th = stocgradient(c, d, d_0, K, h, Y, th, tau, max_it , 100)
+    
+    #plt.plot(JJ)
+    
+    tY = testbatch["Y_q"]
+    tc,a,b,alfa,beta = scale(batch["c_q"])
+    
+    z, yhat = F_tilde(tY, th, d_0, d, K, h)
+    
+    #y = invscale(yhat, a, b, alpha, beta) 
+    
+    plt.plot(yhat)
+    plt.plot(tc)
+    
+    
+    
+
+    """            
+    b = generate_synthetic_batches(I,"1sqr")
+    
+    
+    
+    Y = b["Y"]
+    #Y,a,b,alfa,beta = scale(b["Y"])
+    #c = b["c"]
+    c,a,b,alfa,beta = scale(b["c"])
+    
+    d_0 = Y.shape[0]
+    d = d_0*2
+    
+    
+    th = initialize_weights(d_0, d, K)
+    JJ, th = train(c, d, d_0, K, h, Y, th, tau=tau, max_it=max_it)
+    
+    x = np.linspace(-2, 2, 200)
+    x = np.reshape(x,(1,len(x)))
+    #y = 1-np.cos(x)
+    y = 1/2 *x**2
+    z, yhat = F_tilde(x, th, d_0, d, K, h)
+    yhat = invscale(yhat, a, b, alpha, beta)
+    yhat = yhat.T
+    
+    plt.plot(x.T,y.T)
+    plt.plot(x.T,yhat.T)
+    """
     
     
 
 #f()
 #tau()
 #layers()
-#main()
+main()
