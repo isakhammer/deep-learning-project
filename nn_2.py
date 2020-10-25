@@ -9,7 +9,7 @@ Created on Thu Oct 22 17:29:57 2020
 import numpy as np
 import matplotlib.pyplot as plt
 
-from data import generate_synthetic_batches
+from data import *
 
 
 def F_tilde(Y, th, d_0, d, K, h):
@@ -161,7 +161,6 @@ def stocgradient(c, d, d_0, K, h, Y, th, tau, max_it , bsize):
     itr = 0
     
     while len(indexes) > 0 and itr < 500:
-        print(itr,len(indexes))
         itr +=1
         if len(indexes) >= bsize:
             bsliceI = np.random.choice( indexes, bsize)
@@ -172,7 +171,14 @@ def stocgradient(c, d, d_0, K, h, Y, th, tau, max_it , bsize):
             
             JJ = np.append(JJ,dJJ)
             
-            indexes = np.delete(indexes,bsliceI)
+            si = np.zeros(bsize).astype(int)
+            
+            for i in range(bsize):
+                si[i] = np.where(indexes == bsliceI[i])[0]
+            
+            indexes = np.delete(indexes,si)
+            #indexes = np.delete(indexes,np.where(indexes == bsliceI))
+            
             
         else:
             Yslice = Y[:,indexes]
@@ -183,7 +189,7 @@ def stocgradient(c, d, d_0, K, h, Y, th, tau, max_it , bsize):
             
             JJ = np.append(JJ,dJJ)
             
-            indexes = np.delete(indexes,indexes)
+            indexes = []
             
     return JJ, th
     
@@ -195,11 +201,12 @@ def main():
     tau = 0.1
     
     batches = import_batches()
-    batch = batches[0]
-    testbatch = batches[1]
+    batch1 = batches[0]
+    antB = 10
+    testbatch = batches[antB+1]
     
-    Y = batch["Y_q"]
-    c,a,b,alfa,beta = scale(batch["c_q"])
+    Y = batch1["Y_q"]
+    c,a,b,alfa,beta = scale(batch1["c_q"])
     d_0 = Y.shape[0]
     d = d_0*2
     
@@ -207,12 +214,18 @@ def main():
     th = initialize_weights(d_0, d, K)
     #JJ, th = train(c, d, d_0, K, h, Y, th, tau, max_it)
     
-    JJ, th = stocgradient(c, d, d_0, K, h, Y, th, tau, max_it , 100)
+    for i in range(antB):
+        print(i)
+        batch = batches[i]
+        Y = batch["Y_q"]
+        c,a,b,alfa,beta = scale(batch["c_q"])
+        
+        JJ, th = stocgradient(c, d, d_0, K, h, Y, th, tau, max_it , 80)
     
     #plt.plot(JJ)
     
     tY = testbatch["Y_q"]
-    tc,a,b,alfa,beta = scale(batch["c_q"])
+    tc,a,b,alfa,beta = scale(testbatch["c_q"])
     
     z, yhat = F_tilde(tY, th, d_0, d, K, h)
     
