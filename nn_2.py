@@ -261,13 +261,13 @@ def variablestocgradient(c, d, d_0, K, h, Y, th, tau, max_it, sifts):
     
     return JJ, th
     
-def dF_tilde_y( Z, h, th, d_0, d, K ):
+def dF_tilde_y(y, h, th, d_0, d, K ):
     
-    Z, Upsilon = F_tilde(Y, th, d_0, d, K, h)
+    Z, Upsilon = F_tilde(y, th, d_0, d, K, h)
     dz =  np.identity(d)[:,:d_0]    
     for k in range(0,K):
         dz =  h* sigma(th["W"][k]@ Z[k] +  th["W"][k], derivative = True)@(th["W"][k] @dz) + dz     
-    dUpsilon = eta(z[K].T @ th["w"]  + th["mu"] )  @ (w.T@dz)
+    dUpsilon = eta(Z[K].T @ th["w"]  + th["mu"] )  @ (th["w"].T@dz)
     return dUpsilon 
 
 def main_magnus():
@@ -431,7 +431,7 @@ def main_isak():
     tau = 0.25
     max_it = 3000
 
-    b = generate_synthetic_batches(I,"1sqr")
+    b = generate_synthetic_batches(I,"2sqr")
 
     Y = b["Y"]
     #Y,a,b,alfa,beta = scale(b["Y"])
@@ -445,6 +445,8 @@ def main_isak():
     th = initialize_weights(d_0, d, K)
     #JJ = train(c, d, d_0, K, h, Y, th, tau=tau, max_it=max_it, method="gd")
     JJ, th = train(c, d, d_0, K, h, Y, th, tau=tau, max_it=max_it, method="gd")
+    y = Y[:,0, np.newaxis]
+    dUps = dF_tilde_y(y, h, th, d_0, d, K )
     it = np.arange(JJ.shape[0])
     plt.plot(it, JJ)
 
