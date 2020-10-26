@@ -297,39 +297,35 @@ def main_magnus():
     z, yhat = F_tilde(x, th, d_0, d, K, h)
     yhat = invscale(yhat, a, b, alpha, beta)
     yhat = yhat.T
-    
+
     plt.plot(x.T,y.T)
     plt.plot(x.T,yhat.T)
     """
-    
+
 def main_isak():
     K = 20
     h = 0.1
     I = 130
     tau = 0.25
     max_it = 3000
-                
+
     b = generate_synthetic_batches(I,"1sqr")
-    
+
     Y = b["Y"]
     #Y,a,b,alfa,beta = scale(b["Y"])
     #c = b["c"]
     c,a,b,alfa,beta = scale(b["c"])
-    
+
     d_0 = Y.shape[0]
     d = d_0*2
-    
-    
+
+
     th = initialize_weights(d_0, d, K)
     #JJ = train(c, d, d_0, K, h, Y, th, tau=tau, max_it=max_it, method="gd")
     JJ, th = train(c, d, d_0, K, h, Y, th, tau=tau, max_it=max_it, method="gd")
     it = np.arange(JJ.shape[0])
     plt.plot(it, JJ)
-    plt.show()
-    
-main_magnus()
 
-#f()
-#tau()
-#layers()
-main()
+main_magnus()
+# main_isak()
+plt.show()
