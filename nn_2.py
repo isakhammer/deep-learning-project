@@ -123,6 +123,20 @@ def dJ_func(c, Y, th, d_0, d, K, h):
     return dJ
 
 
+def adam_algebra(th, dJ, v, m, key, j):
+        beta_1, beta_2 =  0.9, 0.999
+        alpha, epsilon = 0.01, 10**(-8)
+    
+    
+        g = dJ[key] 
+        m[key] = beta_1*m[key] + (1- beta_1)*g
+        v[key] = beta_2*v[key] + (1 - beta_2)*(g*g)
+        mhat = m[key]/(1 - beta_1**(j+1))
+        vhat = v[key]/(1 - beta_2**(j+1))
+        th[key] -= alpha*mhat/(np.square(vhat) + epsilon)
+        #print("hat",  vhat, v[key], mhat, m[key], j+1 )
+        return th, v, m
+    
 
 
 def train(c, d, d_0, K, h, Y, th, tau=0.0005, max_it=60, print_it=False, method="gd"):
@@ -146,18 +160,7 @@ def train(c, d, d_0, K, h, Y, th, tau=0.0005, max_it=60, print_it=False, method=
     m["b"] = np.zeros(th["b"].shape)
     v = copy(m)
     
-    beta_1, beta_2 =  0.9, 0.999
-    alpha, epsilon = 0.01, 10**(-8)
     
-    def adam_algebra(th, dJ, v, m, key, j):
-        g = dJ[key] 
-        m[key] = beta_1*m[key] + (1- beta_1)*g
-        v[key] = beta_2*v[key] + (1 - beta_2)*(g*g)
-        mhat = m[key]/(1 - beta_1**(j+1))
-        vhat = v[key]/(1 - beta_2**(j+1))
-        th[key] -= alpha*mhat/(np.square(vhat) + epsilon)
-        #print("hat",  vhat, v[key], mhat, m[key], j+1 )
-        return th, v, m
     
     
     while (itr < max_it ):
@@ -171,7 +174,7 @@ def train(c, d, d_0, K, h, Y, th, tau=0.0005, max_it=60, print_it=False, method=
             th = gradientDesent(K, th, dJ, tau)
         
         elif (method=="adam"):
-            j = itr
+            j = itr + 1
             
             dJ = dJ_func(c, Y, th, d_0, d, K, h)
             
@@ -188,27 +191,29 @@ def train(c, d, d_0, K, h, Y, th, tau=0.0005, max_it=60, print_it=False, method=
         JJ[itr+1] = err
         
         itr += 1
+        
+        """
         if(itr%50 == 0) and (print_it == True):
             print(itr,err)
+        """
         
     return JJ , th
         
 def stocgradient(c, d, d_0, K, h, Y, th, tau, max_it , bsize, sifts = 1):
     
     JJ = np.array([])
-    
+    I = Y.shape[1]
+    totitr = int(I/bsize)
     for siftnum in range(sifts):
-        #print(siftnum)
-        I = Y.shape[1]
-        totitr = int(I/bsize)
+        print(siftnum)
         
         indexes = np.array(range(I))
         
-        itr = 0
+        #itr = 0
         
         while len(indexes) > 0:
-            print(siftnum,itr,totitr)
-            itr +=1
+            #print(siftnum,itr,totitr)
+            #itr +=1
             if len(indexes) >= bsize:
                 bsliceI = np.random.choice( indexes, bsize)
                 Yslice = Y[:,bsliceI]
@@ -239,6 +244,22 @@ def stocgradient(c, d, d_0, K, h, Y, th, tau, max_it , bsize, sifts = 1):
                 indexes = []
             
     return JJ, th
+
+
+def variablestocgradient(c, d, d_0, K, h, Y, th, tau, max_it, sifts):
+    
+    bsizes = np.array([10, 20, 40, 80, 160, 360])
+    
+    JJ = np.array([])
+    
+    for bsize in bsizes:
+        
+        dJJ, th = stocgradient(c, d, d_0, K, h, Y, th, tau, int(bsize/10) , bsize, sifts)
+        
+        JJ = np.append(JJ,dJJ)
+    
+    
+    return JJ, th
     
 def dF_tilde_y( Z, h, th, d_0, d, K ):
     
@@ -253,15 +274,16 @@ def main_magnus():
     K = 20
     h = 0.1
     I = 80
-    max_it = 300
+    max_it = 1
+    sifts = 100
     tau = 0.1
     
     batches = import_batches()
     batch1 = batches[0]
-    antB = 10
+    antB = 1
     testbatch = batches[antB-1]
     
-    cycles = 1
+    
     
     Y = batch1["Y_q"]
     #c,a,b,alfa,beta = scale(batch1["c_q"])
@@ -288,14 +310,20 @@ def main_magnus():
     Y = bigbatch["Y"]
     c,a,b,alfa,beta = scale(bigbatch["c"][:,np.newaxis])
     
-        
-    JJ, th = stocgradient(c, d, d_0, K, h, Y, th, tau, 1 , 160, max_it)
-        
+    """
+    Y = Y[:,:3000]
+    c = c[:3000,:]
+    """
+    
+    JJ, th = stocgradient(c, d, d_0, K, h, Y, th, tau, 2 , 10, sifts)
+    #JJ, th = variablestocgradient(c, d, d_0, K, h, Y, th, tau, 1 , max_it)
+    #JJ, th = train(c, d, d_0, K, h, Y, th, tau, sifts)    
     ####
     
     
     ####
     """
+    cycles = 1
     for cycle in range(cycles):
         for i in range(antB):
             print(cycle,i)
@@ -372,22 +400,27 @@ def test_weights():
     
     batches = import_batches()
     batch1 = batches[0]
-    antB = 3
-    testbatch = batches[10]
+    antB = 2
+    
     
     Y = batch1["Y_q"]
-    c,a,b,alfa,beta = scale(batch1["c_q"])
     d_0 = Y.shape[0]
     d = d_0*2
     
-    tY = testbatch["Y_q"]
-    tc,a,b,alfa,beta = scale(testbatch["c_q"])
+    for i in range(3):
+        testbatch = batches[i]
     
-    z, yhat = F_tilde(tY, th, d_0, d, K, h)
-    
-    plt.plot(yhat)
-    plt.plot(tc)
-    plt.show()
+        tY = testbatch["Y_q"]
+        tc,a,b,alfa,beta = scale(testbatch["c_q"])
+        
+        z, yhat = F_tilde(tY, th, d_0, d, K, h)
+        
+        y = invscale(yhat,a,b,alfa,beta)
+        ic = invscale(tc,a,b,alfa,beta)
+        
+        plt.plot(y)
+        plt.plot(ic)
+        plt.show()
     
     
 
@@ -415,7 +448,7 @@ def main_isak():
     it = np.arange(JJ.shape[0])
     plt.plot(it, JJ)
 
-#main_magnus()
+main_magnus()
+#test_weights()
 # main_isak()
 #plt.show()
-test_weights()
