@@ -318,7 +318,7 @@ def main_isak():
     tau = 0.25
     max_it = 3000
 
-    b = generate_synthetic_batches(I,"1sqr")
+    b = generate_synthetic_batches(I,"2sqr")
 
     Y = b["Y"]
     #Y,a,b,alfa,beta = scale(b["Y"])
@@ -332,6 +332,8 @@ def main_isak():
     th = initialize_weights(d_0, d, K)
     #JJ = train(c, d, d_0, K, h, Y, th, tau=tau, max_it=max_it, method="gd")
     JJ, th = train(c, d, d_0, K, h, Y, th, tau=tau, max_it=max_it, method="gd")
+    y = Y[:,0, np.newaxis]
+    dUps = dF_tilde_y( y, h, th, d_0, d, K, print_it = True )
     it = np.arange(JJ.shape[0])
     plt.plot(it, JJ)
 
