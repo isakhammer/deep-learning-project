@@ -232,6 +232,15 @@ def stocgradient(c, d, d_0, K, h, Y, th, tau, max_it , bsize):
             
     return JJ, th
     
+def dF_tilde_y( Z, h, th, d_0, d, K ):
+    
+    Z, Upsilon = F_tilde(Y, th, d_0, d, K, h)
+    dz =  np.identity(d)[:,:d_0]    
+    for k in range(0,K):
+        dz =  h* sigma(th["W"][k]@ Z[k] +  th["W"][k], derivative = True)@(th["W"][k] @dz) + dz     
+    dUpsilon = eta(z[K].T @ th["w"]  + th["mu"] )  @ (w.T@dz)
+    return dUpsilon 
+
 def main_magnus():
     K = 20
     h = 0.1
