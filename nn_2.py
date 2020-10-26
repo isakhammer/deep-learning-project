@@ -12,7 +12,7 @@ from copy import deepcopy as copy
 import sys
 import matplotlib.pyplot as plt
 
-from data import generate_synthetic_batches
+from data import *
 
 
 def F_tilde(Y, th, d_0, d, K, h):
@@ -191,16 +191,54 @@ def train(c, d, d_0, K, h, Y, th, tau=0.0005, max_it=60, print_it=False, method=
         
     return JJ , th
         
-
+def stocgradient(c, d, d_0, K, h, Y, th, tau, max_it , bsize):
     
 def main_magnus():
+def main():
     K = 20
     h = 0.1
     I = 80
-    tau = 0.25
-    max_it = 3000
-    #method="adam"            
-    method="gd"            
+    max_it = 300
+    tau = 0.1
+    
+    batches = import_batches()
+    batch1 = batches[0]
+    antB = 10
+    testbatch = batches[antB+1]
+    
+    Y = batch1["Y_q"]
+    c,a,b,alfa,beta = scale(batch1["c_q"])
+    d_0 = Y.shape[0]
+    d = d_0*2
+    
+    
+    th = initialize_weights(d_0, d, K)
+    #JJ, th = train(c, d, d_0, K, h, Y, th, tau, max_it)
+    
+    for i in range(antB):
+        print(i)
+        batch = batches[i]
+        Y = batch["Y_q"]
+        c,a,b,alfa,beta = scale(batch["c_q"])
+        
+        JJ, th = stocgradient(c, d, d_0, K, h, Y, th, tau, max_it , 80)
+    
+    #plt.plot(JJ)
+    
+    tY = testbatch["Y_q"]
+    tc,a,b,alfa,beta = scale(testbatch["c_q"])
+    
+    z, yhat = F_tilde(tY, th, d_0, d, K, h)
+    
+    #y = invscale(yhat, a, b, alpha, beta) 
+    
+    plt.plot(yhat)
+    plt.plot(tc)
+    
+    
+    
+
+    """            
     b = generate_synthetic_batches(I,"1sqr")
     
     Y = b["Y"]
@@ -224,6 +262,7 @@ def main_magnus():
     
     plt.plot(x.T,y.T)
     plt.plot(x.T,yhat.T)
+    """
     
 def main_isak():
     K = 20
