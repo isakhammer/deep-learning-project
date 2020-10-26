@@ -11,6 +11,7 @@ from numpy.linalg import norm as n
 from copy import deepcopy as copy 
 import sys
 import matplotlib.pyplot as plt
+import pickle
 
 from data import *
 
@@ -98,6 +99,7 @@ def dJ_func(c, Y, th, d_0, d, K, h):
     etahat = eta(Z[K].T@th["w"] + th["mu"]*np.ones(( I, 1)), derivative=True )
         
     P = np.zeros(( K+1, d, I))
+    
     P[K] = np.outer(th["w"], ( (Upsilon - c)* etahat).T)
         
     dJ_mu = etahat.T @(Upsilon - c)
@@ -191,44 +193,50 @@ def train(c, d, d_0, K, h, Y, th, tau=0.0005, max_it=60, print_it=False, method=
         
     return JJ , th
         
-def stocgradient(c, d, d_0, K, h, Y, th, tau, max_it , bsize):
-    
-    indexes = np.array(range(Y.shape[1]))
+def stocgradient(c, d, d_0, K, h, Y, th, tau, max_it , bsize, sifts = 1):
     
     JJ = np.array([])
     
-    itr = 0
-    
-    while len(indexes) > 0 and itr < 500:
-        itr +=1
-        if len(indexes) >= bsize:
-            bsliceI = np.random.choice( indexes, bsize)
-            Yslice = Y[:,bsliceI]
-            cslice = c[bsliceI]
-            
-            dJJ, th = train(cslice, d, d_0, K, h, Yslice, th, tau, max_it)
-            
-            JJ = np.append(JJ,dJJ)
-            
-            si = np.zeros(bsize).astype(int)
-            
-            for i in range(bsize):
-                si[i] = np.where(indexes == bsliceI[i])[0]
-            
-            indexes = np.delete(indexes,si)
-            #indexes = np.delete(indexes,np.where(indexes == bsliceI))
-            
-            
-        else:
-            Yslice = Y[:,indexes]
-            cslice = c[indexes]
-            
-            
-            dJJ, th = train(cslice, d, d_0, K, h, Yslice, th, tau, max_it)
-            
-            JJ = np.append(JJ,dJJ)
-            
-            indexes = []
+    for siftnum in range(sifts):
+        #print(siftnum)
+        I = Y.shape[1]
+        totitr = int(I/bsize)
+        
+        indexes = np.array(range(I))
+        
+        itr = 0
+        
+        while len(indexes) > 0:
+            print(siftnum,itr,totitr)
+            itr +=1
+            if len(indexes) >= bsize:
+                bsliceI = np.random.choice( indexes, bsize)
+                Yslice = Y[:,bsliceI]
+                cslice = c[bsliceI]
+                
+                dJJ, th = train(cslice, d, d_0, K, h, Yslice, th, tau, max_it)
+                
+                JJ = np.append(JJ,dJJ)
+                
+                si = np.zeros(bsize).astype(int)
+                
+                for i in range(bsize):
+                    si[i] = np.where(indexes == bsliceI[i])[0]
+                
+                indexes = np.delete(indexes,si)
+                #indexes = np.delete(indexes,np.where(indexes == bsliceI))
+                
+                
+            else:
+                Yslice = Y[:,indexes]
+                cslice = c[indexes]
+                
+                
+                dJJ, th = train(cslice, d, d_0, K, h, Yslice, th, tau, max_it)
+                
+                JJ = np.append(JJ,dJJ)
+                
+                indexes = []
             
     return JJ, th
     
@@ -242,26 +250,59 @@ def main_magnus():
     batches = import_batches()
     batch1 = batches[0]
     antB = 10
-    testbatch = batches[antB+1]
+    testbatch = batches[antB-1]
+    
+    cycles = 1
     
     Y = batch1["Y_q"]
-    c,a,b,alfa,beta = scale(batch1["c_q"])
+    #c,a,b,alfa,beta = scale(batch1["c_q"])
     d_0 = Y.shape[0]
     d = d_0*2
     
     
     th = initialize_weights(d_0, d, K)
     #JJ, th = train(c, d, d_0, K, h, Y, th, tau, max_it)
+    JJ = np.array([])
+    
+    
+    ####
+    
+    bigbatch = {}
+    bigbatch["Y"] = np.array([[],[],[]])
+    bigbatch["c"] = np.array([])
     
     for i in range(antB):
-        print(i)
         batch = batches[i]
-        Y = batch["Y_q"]
-        c,a,b,alfa,beta = scale(batch["c_q"])
+        bigbatch["Y"] = np.append(bigbatch["Y"],batch["Y_q"],1)
+        bigbatch["c"] = np.append(bigbatch["c"],batch["c_q"])
         
-        JJ, th = stocgradient(c, d, d_0, K, h, Y, th, tau, max_it , 80)
+    Y = bigbatch["Y"]
+    c,a,b,alfa,beta = scale(bigbatch["c"][:,np.newaxis])
     
-    #plt.plot(JJ)
+        
+    JJ, th = stocgradient(c, d, d_0, K, h, Y, th, tau, 1 , 160, max_it)
+        
+    ####
+    
+    
+    ####
+    """
+    for cycle in range(cycles):
+        for i in range(antB):
+            print(cycle,i)
+            batch = batches[i]
+            Y = batch["Y_q"]
+            c,a,b,alfa,beta = scale(batch["c_q"])
+            
+            dJJ, th = stocgradient(c, d, d_0, K, h, Y, th, tau, max_it , 160)
+            #dJJ, th = train(c, d, d_0, K, h, Y, th, tau, max_it)
+            JJ = np.append(JJ,dJJ)
+    """
+    ####
+        
+    plt.plot(JJ)
+    plt.yscale("log")
+    plt.show()
     
     tY = testbatch["Y_q"]
     tc,a,b,alfa,beta = scale(testbatch["c_q"])
@@ -272,6 +313,15 @@ def main_magnus():
     
     plt.plot(yhat)
     plt.plot(tc)
+    plt.show()
+    
+    th_file = open("weights.pkl", "wb")
+    pickle.dump(th, th_file)
+    th_file.close()
+
+    #a_file = open("data.pkl", "rb")
+    #output = pickle.load(a_file)
+    #print(output)
     
     
     
@@ -302,6 +352,36 @@ def main_magnus():
     plt.plot(x.T,yhat.T)
     """
 
+def test_weights():
+    
+    K = 20
+    h = 0.1
+    tau = 0.1
+    
+    th_file = open("weights.pkl", "rb")
+    th = pickle.load(th_file)
+    
+    batches = import_batches()
+    batch1 = batches[0]
+    antB = 3
+    testbatch = batches[10]
+    
+    Y = batch1["Y_q"]
+    c,a,b,alfa,beta = scale(batch1["c_q"])
+    d_0 = Y.shape[0]
+    d = d_0*2
+    
+    tY = testbatch["Y_q"]
+    tc,a,b,alfa,beta = scale(testbatch["c_q"])
+    
+    z, yhat = F_tilde(tY, th, d_0, d, K, h)
+    
+    plt.plot(yhat)
+    plt.plot(tc)
+    plt.show()
+    
+    
+
 def main_isak():
     K = 20
     h = 0.1
@@ -326,6 +406,7 @@ def main_isak():
     it = np.arange(JJ.shape[0])
     plt.plot(it, JJ)
 
-main_magnus()
+#main_magnus()
 # main_isak()
-plt.show()
+#plt.show()
+test_weights()
