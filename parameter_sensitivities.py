@@ -44,7 +44,7 @@ def K_sensitivity():
     #Y = scale(b["Y"])
     d_0 = Y.shape[0]
     
-    var = var = [ 4, 6, 10, 14, 17, 30]
+    var = var = [ 4, 6, 10, 14, 17, 20, 30]
     it = np.arange(0,max_it+1)
     
     for i in range(len(var)):    
