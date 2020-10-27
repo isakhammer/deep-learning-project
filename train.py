@@ -42,16 +42,25 @@ def kepler(p,q):
 def train_model(model_pars, func):
     # Generate data
     batches = generate_hamiltonian_batches( model_pars["I"], model_pars["n_batches"],  model_pars["d_0"], func)
-    Y_K, c_K = merge_batches(batches["V"])
-    c_K, a, b, alfa, beta = scale(c_K) # why return parameters???
-    # Train net
     
-    JJ_K, th_K = train_net(c=c_K, Y=Y_K,  model_pars=model_pars) 
-    
+    # Evaluate K neural net
+    Y_K, c_K = merge_batches(batches["K"])
+    c_K, a, b, alfa, beta = scale(c_K) # why return hundred parameters???
+    JJ_K, th_K = train_net(c=c_K, Y=Y_K,  model_pars=model_pars)   
     it = np.arange(JJ_K.shape[0])
+    plt.title("th_K Weights " + model_pars["weights"])
     plt.plot(it, JJ_K)
+    plt.show()
+    # Evaluate V neural net
+    Y_V, c_V = merge_batches(batches["V"])
+    c_V, a, b, alfa, beta = scale(c_V) # why return hundred parameters???
+    JJ_V, th_V = train_net(c=c_V, Y=Y_V,  model_pars=model_pars)   
+    it = np.arange(JJ_V.shape[0])
+    plt.title("th_V Weights " + model_pars["weights"])
+    plt.plot(it, JJ_V)
+    plt.show()
+    
         
-    # Train net 1
     # Train net 2
     # Save weights
     return
