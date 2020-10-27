@@ -420,4 +420,4 @@ def main_isak():
 #main_magnus()
 # main_isak()
 #plt.show()
-test_weights()
+#test_weights()
