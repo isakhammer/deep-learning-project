@@ -6,6 +6,8 @@ Created on Mon Oct 26 18:22:27 2020
 @author: isakh
 """
 
+from neural_net import *
+
 """
 Stormler Vermet.
 
@@ -60,4 +62,32 @@ def symplectic_test( function_name: str):
     
     
     
+def test_uknown():
     
+    K = 20
+    h = 0.1
+    tau = 0.1
+    
+    th_file = open("weights.pkl", "rb")
+    th = pickle.load(th_file)
+    
+    batches = import_batches()
+    batch1 = batches[0]
+    antB = 3
+    testbatch = batches[10]
+    
+    Y = batch1["Y_q"]
+    c,a,b,alfa,beta = scale(batch1["c_q"])
+    d_0 = Y.shape[0]
+    d = d_0*2
+    
+    tY = testbatch["Y_q"]
+    tc,a,b,alfa,beta = scale(testbatch["c_q"])
+    
+    z, yhat = F_tilde(tY, th, d_0, d, K, h)
+    plt.title("Function fit on unkown data")
+    plt.plot(yhat)
+    plt.plot(tc)
+    plt.show()
+
+test_weights()     
