@@ -60,6 +60,13 @@ def train_model(model_pars, func):
     plt.plot(it, JJ_V)
     plt.show()
     
+    th = {}
+    th["V"] = th_V
+    th["K"] = th_K
+    th_file = open(model_pars["weights"], "wb")
+    pickle.dump(th, th_file)
+    th_file.close()
+
         
     # Train net 2
     # Save weights
@@ -122,6 +129,7 @@ def train_uknown():
     
     
     # Train net
+ 
     JJ, th = train_net(c, Y, model_pars=pars)
         
         
@@ -145,4 +153,5 @@ def train_uknown():
 
     return
 
-train_uknown()
+#train_uknown()
+train_analytic()
