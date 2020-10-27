@@ -1,0 +1,26 @@
+
+uknown:
+    K: 20
+    d: 10
+    h: 0.1
+    max_it: 300
+    tau: 0.1
+    bsize: 10
+    sifts: 1
+    weights: "uknown.pkl"  
+    
+kepler:
+    K: 20
+    d: 10
+    h: 0.1
+    max_it: 300
+    tau: 0.1
+    bsize: 10
+    sifts: 1
+    weights: "kepler.pkl"  
+    
+#model_2:
+#    K = 20
+#   h = 0.1
+    #weights = "model_2.pkl"  
+    
