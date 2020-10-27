@@ -1,4 +1,4 @@
-
+import numpy as np
 from neural_net import *
 from parameters import *
 from data import *
@@ -6,11 +6,9 @@ import matplotlib.pyplot as plt
 import sys
 
 def train_net(c, Y, model_pars):
-    
-    # Start weight
-    d_0 = Y.shape[0]
-    
+        
     # TODO: pass in dictionary as a parameter instead of variables.
+    d_0 = model_pars["d_0"] 
     d       = model_pars["d"]
     K       = model_pars["K"]
     tau     = model_pars["tau"]
@@ -20,12 +18,10 @@ def train_net(c, Y, model_pars):
     tau     = model_pars["tau"]
     sifts   = model_pars["sifts"]
     bsize   = model_pars["bsize"]
-    maxit   = model_pars["max_it"]
-    
+    max_it   = model_pars["max_it"]
     
     th = initialize_weights(d_0, d, K)
-    
-        
+  
     JJ, th = stocgradient(c, d, d_0, K, h, Y, th, tau, sifts, bsize, max_it)
     
     return JJ, th
@@ -70,13 +66,13 @@ def train_uknown():
     #I = pars["uknown"]["I"]
     
     max_it = pars["max_it"]
-    tau =pars["tau"]
+    tau = pars["tau"]
     
-    Y = batch1["Y_q"]
+    #Y = batch1["Y_q"]
 
     # Import batches
     batches = import_batches()
-    batch1 = batches[0]
+    #batch1 = batches[0]
     antB = 10
     testbatch = batches[antB-1]
     
