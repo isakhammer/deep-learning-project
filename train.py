@@ -60,12 +60,27 @@ def train_model(model_pars, func):
 
     
 def train_analytic():
-    kepler_pars =  get_params(model="kepler")
+
     # Train model 1
-    train_model(model_pars=kepler_pars)
+    kepler_pars = get_params(model="kepler")
+    train_model(model_pars=kepler_pars, func=kepler)
     # Train model 2
     return
-    
+
+def merge_batches(batches):
+    d_0 = batches[0]["Y"].shape[0]
+           
+    Y = []
+    c = []
+    for i in range(len(batches)):
+        batch = batches[i]
+        Y.append( batch["Y"])
+        c.append( batch["c"])
+        
+    Y = np.stack(Y).reshape( d_0,-1 )
+    c = np.stack(c).reshape(-1,1)
+    return Y, c
+
 def train_uknown():
     pars = get_params(model="uknown")
     
