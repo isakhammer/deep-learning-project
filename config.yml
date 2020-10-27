@@ -3,6 +3,8 @@ uknown:
     K: 20
     d: 10
     h: 0.1
+    
+    d_0: 3
     max_it: 300
     tau: 0.1
     bsize: 10
@@ -13,6 +15,10 @@ kepler:
     K: 20
     d: 10
     h: 0.1
+    
+    I: 5
+    n_batches: 2
+    d_0: 2
     max_it: 300
     tau: 0.1
     bsize: 10
