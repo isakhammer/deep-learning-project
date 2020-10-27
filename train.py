@@ -33,16 +33,24 @@ def kepler(p,q):
         print("Wrong dimension")
         sys.exit(1)
     
-    T = 0.5* (p[0]**2 + p[1]**2) 
+    K = 0.5* (p[0]**2 + p[1]**2) 
     V = -1/np.sqrt(q[0]**2 + q[1]**2) 
     
-    return T, V
+    return K, V
 
  
-def train_model(model_pars):
+def train_model(model_pars, func):
     # Generate data
-    batches = generate_synthetic_batches(I=100,func = "2sqr"):
+    batches = generate_hamiltonian_batches( model_pars["I"], model_pars["n_batches"],  model_pars["d_0"], func)
+    Y_K, c_K = merge_batches(batches["V"])
+    c_K, a, b, alfa, beta = scale(c_K) # why return parameters???
+    # Train net
     
+    JJ_K, th_K = train_net(c=c_K, Y=Y_K,  model_pars=model_pars) 
+    
+    it = np.arange(JJ_K.shape[0])
+    plt.plot(it, JJ_K)
+        
     # Train net 1
     # Train net 2
     # Save weights
