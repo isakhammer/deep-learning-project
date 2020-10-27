@@ -53,7 +53,27 @@ def generate_synthetic_batches(I,func = "2sqr"):
     else:
         raise Exception("Not axeped func")
         
+def generate_hamiltonian_batches(I, n_batches, d_0, func):
+    batches = {} 
+    batches["V"], batches["K"] = {}, {}
+    for i in range(n_batches):
+        V_batch, K_batch = {}, {}
+        V_batch["Y"] = np.random.uniform(high=2, low=-2, size=(d_0,I) )    
+        K_batch["Y"] = np.random.uniform(high=2, low=-2, size=(d_0,I) )    
+        K_batch["c"], V_batch["c"] = func( K_batch["Y"], V_batch["Y"])
         
+        V_batch["c"] = V_batch["c"][:, np.newaxis]
+        K_batch["c"] = K_batch["c"][:, np.newaxis]
+        
+       
+        batches["V"][i] = V_batch
+        batches["K"][i] = K_batch
+    
+    
+    return batches
+
+    
+
 def import_batches():
     n_batches = 49
     
