@@ -207,7 +207,7 @@ def stocgradient(c, d, d_0, K, h, Y, th, tau, max_it , bsize, sifts = 1):
         itr = 0
         
         while len(indexes) > 0:
-            print(siftnum,itr,totitr)
+            #print(siftnum,itr,totitr)
             itr +=1
             if len(indexes) >= bsize:
                 bsliceI = np.random.choice( indexes, bsize)
