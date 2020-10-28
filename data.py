@@ -50,6 +50,21 @@ def generate_synthetic_batches(I,func = "2sqr"):
         
         return batch
     
+    elif func == "2norm-1":
+        batch["Y"] = np.random.uniform(high=2, low=-2, size=(d_0,I))
+        
+        origo = np.zeros((d_0,1))
+        
+        for y in batch["Y"].T:
+            if (y == origo):
+                y = np.array([0.1,0.1])
+        
+        batch["c"] = 1 - np.cos(batch["Y"])
+        batch["c"] = batch["c"].T
+            
+        return batch
+        
+    
     else:
         raise Exception("Not axeped func")
         
