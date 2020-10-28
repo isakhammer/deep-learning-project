@@ -64,7 +64,6 @@ def eta(x, derivative=False, identity=False):
         return 0.5*np.tanh(0.5*x) + 0.5
         
 
-
 def J_func(Upsilon, c):
     return 0.5*np.linalg.norm(c - Upsilon)**2
 

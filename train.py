@@ -4,6 +4,7 @@ from parameters import *
 from data import *
 import matplotlib.pyplot as plt
 import sys
+from functions import *
 
 def train_net(c, Y, model_pars):
         
@@ -23,6 +24,7 @@ def train_net(c, Y, model_pars):
     th = initialize_weights(d_0, d, K)
   
     JJ, th = stocgradient(c, d, d_0, K, h, Y, th, tau, sifts, bsize, max_it)
+    #JJ, th = train(c, d, d_0, K, h, Y, th, tau, max_it, method="adam")
     
     return JJ, th
     
@@ -41,7 +43,7 @@ def kepler(p,q):
  
 def train_model(model_pars, func):
     # Generate data
-    batches = generate_hamiltonian_batches( model_pars["I"], model_pars["n_batches"],  model_pars["d_0"], func)
+    batches = generate_batches( model_pars["I"], model_pars["n_batches"],  model_pars["d_0"], func)
     
     # Evaluate K neural net
     Y_K, c_K = merge_batches(batches["K"])
@@ -67,26 +69,21 @@ def train_model(model_pars, func):
     pickle.dump(th, th_file)
     th_file.close()
 
-        
-    # Train net 2
-    # Save weights
     return
 
 
-
-    
 def train_analytic():
 
     # Train model 1
     kepler_pars = get_params(model="kepler")
-    train_model(model_pars=kepler_pars, func=kepler)
-    # Train model 2
+    train_model(model_pars=kepler_pars, func=kepler)  
     return
+
 
 def merge_batches(batches):
     d_0 = batches[0]["Y"].shape[0]
            
-    Y = []
+    Y = [] 
     c = []
     for i in range(len(batches)):
         batch = batches[i]
@@ -127,11 +124,8 @@ def train_uknown():
     Y = bigbatch["Y"]
     c,a,b,alfa,beta = scale(bigbatch["c"][:,np.newaxis])
     
-    
     # Train net
- 
     JJ, th = train_net(c, Y, model_pars=pars)
-        
         
     plt.plot(JJ)
     plt.yscale("log")
