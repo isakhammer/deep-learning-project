@@ -50,7 +50,7 @@ def tauI_sensitivity(I, method="gd"):
         tau = var[i]
         th = initialize_weights(d_0, d, K)
         JJ,th = train(c, d, d_0, K, h, Y, th, tau=tau, max_it=max_it, method=method)
-        plt.plot(it, JJ, label="tau: "+ str(tau*I) + "/I")
+        plt.plot(it, JJ, label="tau: "+ str(tau) + "/I")
     
     plt.title("Tau Sensitivity Analysis for " + method + ", I: "+str(I))
     plt.legend()
@@ -87,21 +87,23 @@ def alphaI_sensitivity(I, method="adam"):
     Y = b["Y"]
     d_0 = Y.shape[0]
     
-    var = np.array( [0.75*10**-4, 0.5*10**-4, 0.35*10**-4, 0.75*10**-5, 0.5*10**-5, 0.25*10**-6])/I
+    var = np.array( [10**-1, 10**-2, 10**-3, 10**-4, 10**-5, 10**-6 ])#/I
     it = np.arange(0,max_it+1)
     
     for i in range(len(var)):    
         alpha = var[i]
         th = initialize_weights(d_0, d, K)
         JJ,th = train(c, d, d_0, K, h, Y, th, tau=tau, max_it=max_it, method=method, alpha=alpha)
-        plt.plot(it, JJ, label="alpha: "+ str(alpha*I) + "/I")
+        plt.plot(it, JJ, label="alpha: "+ str(alpha) )
     
-    plt.title("Alpha Sensitivity Analysis for " + method + ", I: "+str(I))
+    plt.title("ADAM Sensitivity - " + "I: "+str(I))
+    plt.xlabel("Iteration")
+    plt.ylabel("Cost function")
     plt.legend()
     plt.show()
 
 def I_selection(var="tau", method="gd"):       
-    I = [5, 10, 15, 20, 40, 80, 160, 320]
+    I = [160, 320, 720, 1440, 2880, 5760]
     for i in I:
         if var == "tau":
             tauI_sensitivity(i)
@@ -214,7 +216,7 @@ h = 0.1
 d_0 = 2
 d = 4
 I = 600
-max_it = 1000
+max_it = 700
 tau = 0.1
 
 """
@@ -234,5 +236,5 @@ I_selection(method="adam")
 #tau_sensitivity(method="gd")
 #alpha_sensitivity(method="adam")
 
-I_selection(var="tau", method="gd")      
+#I_selection(var="tau", method="gd")      
 I_selection(var="alpha", method="gd")

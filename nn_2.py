@@ -149,7 +149,7 @@ def adam_algebra(th, dJ, v, m, key, j, alpha =10**(-5)):
     
 
 
-def train(c, d, d_0, K, h, Y, th, tau=0.0005, max_it=60, print_it=False, method="gd", alpha =10**(-5)):
+def train(c, d, d_0, K, h, Y, th, tau=0.0005, max_it=60, print_it=True, method="gd", alpha =7.5*10**(-5)):
     # compute Zk
     err = np.inf
     tol = 0.01
@@ -202,10 +202,8 @@ def train(c, d, d_0, K, h, Y, th, tau=0.0005, max_it=60, print_it=False, method=
         
         itr += 1
         
-        """
-        if(itr%50 == 0) and (print_it == True):
+        if(itr%600 == 0) and (print_it == True):
             print(itr,err)
-        """
         
     return JJ , th
         
@@ -292,14 +290,14 @@ def main_magnus():
     K = 20
     h = 0.1
     #I = 80
-    max_it = 10000
+    max_it = 1000
     sifts = 110
     #tau = 0.1
     
     
     batches = import_batches()
     batch1 = batches[0]
-    antB = 1
+    antB = 2
     testbatch = batches[antB-1]
     
     
@@ -350,7 +348,8 @@ def main_magnus():
     """
     
     #JJ, th = stocgradient(c, d, d_0, K, h, Y, th, tau, 1 , 40, sifts)
-    #JJ, th = train(c, d, d_0, K, h, Y, th, tau, max_it)
+    #J, th = train(c, d, d_0, K, h, Y, th, tau, max_it, method="gd", alpha=7.5*10**(-5)/I)
+    J, th = train(c, d, d_0, K, h, Y, th, tau, max_it, method="adam", alpha=7.5*10**(-5)/I)
     
     #JJ, th = variablestocgradient(c, d, d_0, K, h, Y, th, tau, 1 , max_it)
     #JJ, th = train(c, d, d_0, K, h, Y, th, tau, sifts)    
