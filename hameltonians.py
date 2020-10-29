@@ -15,6 +15,54 @@ import pickle
 from data import *
 from nn_2 import *
 
+def train_two_body(pq):
+    if pq == "p":
+        func = "2sqr"
+    elif pq == "q":
+        func = "2norm-1"
+    else:
+        raise Exception("p or q")
+    
+    
+    I = 8000
+    K = 20
+    h = 0.1
+    sifts = 100
+    
+    qdata = generate_synthetic_batches(I, func=func)
+    
+    q =qdata["Y"]
+    cq = qdata["c"]
+    scq,invqc = scale(cq)
+    
+    parametersq = scale(cq,returnParameters = True)
+    
+    
+    
+    invq_file = open( pq + "_tb_inv.pkl", "wb")
+    pickle.dump(parametersq, invq_file)
+    invq_file.close()
+    
+    d_0 = q.shape[0]
+    d = d_0*2
+    
+    Ihat = 40
+    tau = 3/Ihat
+    
+    thq = initialize_weights(d_0, d, K)
+    
+    JJq, thq = stocgradient(scq, d, d_0, K, h, q, thq, tau, 1 , Ihat, sifts)
+    
+    plt.plot(JJq)
+    plt.yscale("log")
+    plt.show()
+    
+    
+    thq_file = open(func + "_inv.pkl", "wb")
+    pickle.dump(thq, thq_file)
+    thq_file.close()
+
+"""
 def train_two_body():
     I = 8000
     K = 20
@@ -63,9 +111,6 @@ def train_two_body():
     plt.yscale("log")
     plt.show()
     
-    
-    
-    
     thp_file = open("tbpw.pkl", "wb")
     pickle.dump(thp, thp_file)
     thp_file.close()
@@ -74,7 +119,7 @@ def train_two_body():
     pickle.dump(thq, thq_file)
     thq_file.close()
     
-    
+ """   
     
 def test_two_body():
     
