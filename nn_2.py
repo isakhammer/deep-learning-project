@@ -135,7 +135,7 @@ def dJ_func(c, Y, th, d_0, d, K, h):
     return dJ
 
 
-def adam_algebra(th, dJ, v, m, key, j,alpha =10**(-5)):
+def adam_algebra(th, dJ, v, m, key, j, alpha =10**(-5)):
         beta_1, beta_2 =  0.9, 0.999
         epsilon =  10**(-8)
     
@@ -151,7 +151,7 @@ def adam_algebra(th, dJ, v, m, key, j,alpha =10**(-5)):
     
 
 
-def train(c, d, d_0, K, h, Y, th, tau=0.0005, max_it=60, print_it=False, method="gd"):
+def train(c, d, d_0, K, h, Y, th, tau=0.0005, max_it=60, print_it=True, method="gd", alpha =7.5*10**(-5)):
     # compute Zk
     err = np.inf
     tol = 0.01
@@ -190,10 +190,10 @@ def train(c, d, d_0, K, h, Y, th, tau=0.0005, max_it=60, print_it=False, method=
             
             dJ = dJ_func(c, Y, th, d_0, d, K, h)
             
-            th, v, m = adam_algebra(th, dJ, v, m, "mu", j)
-            th, v, m = adam_algebra(th, dJ, v, m, "w", j)
-            th, v, m = adam_algebra(th, dJ, v, m, "W", j)
-            th, v, m = adam_algebra(th, dJ, v, m, "b", j)
+            th, v, m = adam_algebra(th, dJ, v, m, "mu", j, alpha)
+            th, v, m = adam_algebra(th, dJ, v, m, "w", j, alpha)
+            th, v, m = adam_algebra(th, dJ, v, m, "W", j, alpha)
+            th, v, m = adam_algebra(th, dJ, v, m, "b", j, alpha)
             
         else:
             print("No optimization method")
@@ -204,10 +204,8 @@ def train(c, d, d_0, K, h, Y, th, tau=0.0005, max_it=60, print_it=False, method=
         
         itr += 1
         
-        """
-        if(itr%50 == 0) and (print_it == True):
+        if(itr%600 == 0) and (print_it == True):
             print(itr,err)
-        """
         
     return JJ , th
         
@@ -288,7 +286,7 @@ def main_magnus():
     K = 20
     h = 0.1
     #I = 80
-    max_it = 10000
+    max_it = 1000
     sifts = 110
     #tau = 0.1
     
@@ -350,8 +348,9 @@ def main_magnus():
     c = c[:3000,:]
     """
     
-    JJ, th = stocgradient(c, d, d_0, K, h, Y, th, tau, 1 , Ihat, sifts)
-    #JJ, th = train(c, d, d_0, K, h, Y, th, tau, max_it)
+    #JJ, th = stocgradient(c, d, d_0, K, h, Y, th, tau, 1 , 40, sifts)
+    #J, th = train(c, d, d_0, K, h, Y, th, tau, max_it, method="gd", alpha=7.5*10**(-5)/I)
+    J, th = train(c, d, d_0, K, h, Y, th, tau, max_it, method="adam", alpha=7.5*10**(-5)/I)
     
     #JJ, th = variablestocgradient(c, d, d_0, K, h, Y, th, tau, 1 , max_it)
     #JJ, th = train(c, d, d_0, K, h, Y, th, tau, sifts)    

@@ -11,8 +11,9 @@ from data import *
 import matplotlib.pyplot as plt
 import os
 
-def tau_sensitivity():
-                
+def tau_sensitivity(method="gd"):
+           
+    I = 100     
     b = generate_synthetic_batches(I)
     
     c, inv = scale(b["c"])
@@ -26,16 +27,15 @@ def tau_sensitivity():
     for i in range(len(var)):    
         tau = var[i]
         th = initialize_weights(d_0, d, K)
-        JJ,th = train(c, d, d_0, K, h, Y, th, tau=tau, max_it=max_it, method="gd")
+        JJ,th = train(c, d, d_0, K, h, Y, th, tau=tau, max_it=max_it, method=method)
         plt.plot(it, JJ, label="tau: "+ str(tau))
     
-    plt.savefig(file_paths["tau_sensitivity"] )
-    plt.title("Tau Sensitivity Analysis")
+    plt.title("Tau Sensitivity Analysis for " + method)
     plt.legend()
     plt.show()
     
-def tauI_sensitivity(I):
-                
+def tauI_sensitivity(I, method="gd"):            
+    
     b = generate_synthetic_batches(I)
     
     c, inv = scale(b["c"])
@@ -49,21 +49,71 @@ def tauI_sensitivity(I):
     for i in range(len(var)):    
         tau = var[i]
         th = initialize_weights(d_0, d, K)
-        JJ,th = train(c, d, d_0, K, h, Y, th, tau=tau, max_it=max_it, method="gd")
-        plt.plot(it, JJ, label="tau: "+ str(tau*I) + "/I")
+        JJ,th = train(c, d, d_0, K, h, Y, th, tau=tau, max_it=max_it, method=method)
+        plt.plot(it, JJ, label="tau: "+ str(tau) + "/I")
     
-    plt.savefig(file_paths["tau_sensitivity"] )
-    plt.title("Tau Sensitivity Analysis, I: "+str(I))
+    plt.title("Tau Sensitivity Analysis for " + method + ", I: "+str(I))
+    plt.legend()
+    plt.show()
+
+def alpha_sensitivity(method="adam"):
+                
+    I = 100
+    b = generate_synthetic_batches(I)
+    
+    c, inv = scale(b["c"])
+    Y = b["Y"]
+    #Y = scale(b["Y"])
+    d_0 = Y.shape[0]
+    
+    var = [0.75*10**-4, 0.5*10**-4, 0.35*10**-4, 0.75*10**-5, 0.5*10**-5, 0.25*10**-6]
+    it = np.arange(0,max_it+1)
+    
+    for i in range(len(var)):    
+        alpha = var[i]
+        th = initialize_weights(d_0, d, K)
+        JJ,th = train(c, d, d_0, K, h, Y, th, tau=tau, max_it=max_it, method=method, alpha=alpha)
+        plt.plot(it, JJ, label="alpha: "+ str(alpha))
+    
+    plt.title("Alpha Sensitivity Analysis for " + method)
     plt.legend()
     plt.show()
     
-def I_selection():       
-    var = [5, 10, 15, 20, 40, 80, 160, 320]
-    for I in var:
-        tauI_sensitivity(I)
+def alphaI_sensitivity(I, method="adam"):            
+    
+    b = generate_synthetic_batches(I)
+    
+    c, inv = scale(b["c"])
+    Y = b["Y"]
+    d_0 = Y.shape[0]
+    
+    var = np.array( [10**-1, 10**-2, 10**-3, 10**-4, 10**-5, 10**-6 ])#/I
+    it = np.arange(0,max_it+1)
+    
+    for i in range(len(var)):    
+        alpha = var[i]
+        th = initialize_weights(d_0, d, K)
+        JJ,th = train(c, d, d_0, K, h, Y, th, tau=tau, max_it=max_it, method=method, alpha=alpha)
+        plt.plot(it, JJ, label="alpha: "+ str(alpha) )
+    
+    plt.title("ADAM Sensitivity - " + "I: "+str(I))
+    plt.xlabel("Iteration")
+    plt.ylabel("Cost function")
+    plt.legend()
+    plt.show()
+
+def I_selection(var="tau", method="gd"):       
+    I = [160, 320, 720, 1440, 2880, 5760]
+    for i in I:
+        if var == "tau":
+            tauI_sensitivity(i)
+        elif var == "alpha":
+            alphaI_sensitivity(i)
+        else:
+            print("no var")
     
 
-def K_sensitivity():
+def K_sensitivity(method="gd"):
              
     b = generate_synthetic_batches(I)
     
@@ -78,17 +128,16 @@ def K_sensitivity():
     for i in range(len(var)):    
         K = var[i]
         th = initialize_weights(d_0, d, K)
-        JJ,th = train(c, d, d_0, K, h, Y, th, tau=tau, max_it=max_it, method="gd")
+        JJ,th = train(c, d, d_0, K, h, Y, th, tau=tau, max_it=max_it, method=method)
         plt.plot(it, JJ, label="K: "+ str(var[i]))
     
-    plt.title("K Sensitivity Analysis")
+    plt.title("K Sensitivity Analysis for " + method)
     plt.legend()
     plt.show()
-    plt.savefig(file_paths["K_sensitivity"] )
 
     
 
-def h_sensitivity():
+def h_sensitivity(method="gd"):
              
     b = generate_synthetic_batches(I)
     
@@ -103,16 +152,15 @@ def h_sensitivity():
     for i in range(len(var)):    
         h = var[i]
         th = initialize_weights(d_0, d, K)
-        JJ,th = train(c, d, d_0, K, h, Y, th, tau=tau, max_it=max_it, method="gd")
+        JJ,th = train(c, d, d_0, K, h, Y, th, tau=tau, max_it=max_it, method=method)
         plt.plot(it, JJ, label="h: "+ str(var[i]))
     
-    plt.title("h Sensitivity Analysis")
+    plt.title("h Sensitivity Analysis for " + method)
     plt.legend()
     plt.show()
-    plt.savefig(file_paths["h_sensitivity"] )
 
 
-def d_sensitivity():
+def d_sensitivity(method="gd"):
              
     b = generate_synthetic_batches(I)
     
@@ -127,15 +175,14 @@ def d_sensitivity():
     for i in range(len(var)):    
         d = var[i]
         th = initialize_weights(d_0, d, K)
-        JJ,th = train(c, d, d_0, K, h, Y, th, tau=tau, max_it=max_it, method="gd")
+        JJ,th = train(c, d, d_0, K, h, Y, th, tau=tau, max_it=max_it, method=method)
         plt.plot(it, JJ, label="d: "+ str(var[i]))
     
-    plt.title("d Sensitivity Analysis")
+    plt.title("d Sensitivity Analysis for " + method)
     plt.legend()
     plt.show()
-    plt.savefig(file_paths["d_sensitivity"] )
 
-def I_sensitivity():
+def I_sensitivity(method="gd"):
     max_it = 3000             
     var = var = [5, 10, 15, 20, 40, 80, 160, 320]
     it = np.arange(0,max_it+1)
@@ -150,27 +197,17 @@ def I_sensitivity():
     
         print("I:", I)
         th = initialize_weights(d_0, d, K)
-        JJ,th = train(c, d, d_0, K, h, Y, th, tau=tau, max_it=max_it, print_it=False, method="gd")
+        JJ,th = train(c, d, d_0, K, h, Y, th, tau=tau, max_it=max_it, print_it=False, method=method)
         JJ = JJ/JJ[0]
         plt.plot(it, JJ, label="I: "+ str(var[i]))
     
     #plt.yscale("log")
-    plt.title("I Sensitivity Analysis")
+    plt.title("I Sensitivity Analysis for " + method)
     plt.yscale("log")
     plt.legend()
     plt.show()
-    plt.savefig(file_paths["I_sensitivity"] )
     
     
-
-file_paths = {}
-file_paths["output"] = os.path.join(os.path.dirname(__file__), "output" ) 
-os.makedirs(file_paths["output"], exist_ok=True) 
-file_paths["K_sensitivity"] = os.path.join(file_paths["output"], "K_sensitivity.png")
-file_paths["tau_sensitivity"] = os.path.join(file_paths["output"], "tau_sensitivity.png")
-file_paths["h_sensitivity"] = os.path.join(file_paths["output"], "h_sensitivity.png")
-file_paths["d_sensitivity"] = os.path.join(file_paths["output"], "d_sensitivity.png")
-file_paths["I_sensitivity"] = os.path.join(file_paths["output"], "I_sensitivity.png")
 
 
 # Default values based on the analysis
@@ -179,14 +216,25 @@ h = 0.1
 d_0 = 2
 d = 4
 I = 600
-max_it = 300
+max_it = 700
 tau = 0.1
 
+"""
 
-#K_sensitivity()
-tau_sensitivity()
-#h_sensitivity()
-#d_sensitivity()
-#I_sensitivity()
-I_selection()
-#Ib_sensitivity()
+K_sensitivity(method="gd")
+h_sensitivity(method="gd")
+d_sensitivity(method="gd")
+I_sensitivity(method="gd")
+I_selection(method="gd")
+
+K_sensitivity(method="adam")
+h_sensitivity(method="adam")
+d_sensitivity(method="adam")
+I_sensitivity(method="adam")
+I_selection(method="adam")
+"""
+#tau_sensitivity(method="gd")
+#alpha_sensitivity(method="adam")
+
+#I_selection(var="tau", method="gd")      
+I_selection(var="alpha", method="gd")
