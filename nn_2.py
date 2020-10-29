@@ -149,7 +149,7 @@ def adam_algebra(th, dJ, v, m, key, j):
     
 
 
-def train(c, d, d_0, K, h, Y, th, tau=0.0005, max_it=60, print_it=False, method="gd"):
+def train(c, d, d_0, K, h, Y, th, tau=0.0005, max_it=60, print_it=True, method="gd"):
     # compute Zk
     err = np.inf
     tol = 0.01
@@ -202,10 +202,10 @@ def train(c, d, d_0, K, h, Y, th, tau=0.0005, max_it=60, print_it=False, method=
         
         itr += 1
         
-        """
+        
         if(itr%50 == 0) and (print_it == True):
             print(itr,err)
-        """
+        
         
     return JJ , th
         
@@ -291,14 +291,15 @@ def dF_tilde_y(y, h, th, d_0, d, K ):
 def main_magnus():
     K = 20
     h = 0.1
-    I = 80
-    max_it = 1
+    #I = 80
+    max_it = 10000
     sifts = 110
-    tau = 0.1
+    #tau = 0.1
+    
     
     batches = import_batches()
     batch1 = batches[0]
-    antB = 40
+    antB = 1
     testbatch = batches[antB-1]
     
     
@@ -307,6 +308,9 @@ def main_magnus():
     #c,a,b,alfa,beta = scale(batch1["c_q"])
     d_0 = Y.shape[0]
     d = d_0*2
+    I = Y.shape[1]
+    tau = 2/I
+    
     
     
     th = initialize_weights(d_0, d, K)
@@ -345,7 +349,9 @@ def main_magnus():
     c = c[:3000,:]
     """
     
-    JJ, th = stocgradient(c, d, d_0, K, h, Y, th, tau, 1 , 40, sifts)
+    #JJ, th = stocgradient(c, d, d_0, K, h, Y, th, tau, 1 , 40, sifts)
+    #JJ, th = train(c, d, d_0, K, h, Y, th, tau, max_it)
+    
     #JJ, th = variablestocgradient(c, d, d_0, K, h, Y, th, tau, 1 , max_it)
     #JJ, th = train(c, d, d_0, K, h, Y, th, tau, sifts)    
     ####
@@ -376,7 +382,7 @@ def main_magnus():
     
     z, yhat = F_tilde(tY, th, d_0, d, K, h)
     
-    y = invscale(yhat)
+    y = inv(yhat)
     ic = invscale(tc)
     
     plt.plot(y)
@@ -473,11 +479,12 @@ def test_weights():
 def main_isak():
     K = 20
     h = 0.1
-    I = 200
+    I = 400
     tau = 0.1
-    max_it = 10000
+    max_it = 30000
 
-    b = generate_synthetic_batches(I,"1sqr")
+    b = generate_synthetic_batches(I,"2norm-1")
+    #b = generate_synthetic_batches(I)
 
     Y = b["Y"]
     #Y,a,b,alfa,beta = scale(b["Y"])
@@ -490,8 +497,8 @@ def main_isak():
 
     th = initialize_weights(d_0, d, K)
     #JJ, th = train(c, d, d_0, K, h, Y, th, tau, max_it, method="gd")
-    JJ, th = train(c, d, d_0, K, h, Y, th, tau, max_it, method="adam")
-    
+    #JJ, th = train(c, d, d_0, K, h, Y, th, tau, max_it, method="adam")
+    """
     x = np.linspace(-2, 2, I)
     x = np.reshape(x,(1,len(x)))
     #y = 1-np.cos(x)
@@ -503,9 +510,10 @@ def main_isak():
     plt.plot(x.T,y.T)
     plt.plot(x.T,yhat.T)
     plt.show()
-    
+    """
     plt.plot(JJ)
     plt.show()
+    
     
     
 
