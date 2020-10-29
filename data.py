@@ -60,7 +60,7 @@ def generate_synthetic_batches(I,func = "2sqr"):
             if (np.all(y == 0)):
                 y = np.array([0.1,0.1])
         
-        batch["c"] = 1/np.sqrt(batch["Y"][0]**2 + batch["Y"][1]**2)
+        batch["c"] = -1/np.sqrt(batch["Y"][0]**2 + batch["Y"][1]**2)
         batch["c"] = batch["c"].T
         batch["c"] = batch["c"][:, np.newaxis]
             

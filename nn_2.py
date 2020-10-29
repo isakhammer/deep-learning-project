@@ -73,6 +73,8 @@ def scale(x, alpha=0, beta=1, returnParameters = False):
     
     a = np.min(x)
     b = np.max(x)
+    print(a)
+    print(b)
     
     if returnParameters:
         
@@ -209,7 +211,7 @@ def train(c, d, d_0, K, h, Y, th, tau=0.0005, max_it=60, print_it=False, method=
         
     return JJ , th
         
-def stocgradient(c, d, d_0, K, h, Y, th, tau, max_it , bsize, sifts = 1):
+def stocgradient(c, d, d_0, K, h, Y, th, tau, max_it , bsize, sifts = 100):
     
     JJ = np.array([])
     I = Y.shape[1]
@@ -223,6 +225,10 @@ def stocgradient(c, d, d_0, K, h, Y, th, tau, max_it , bsize, sifts = 1):
         
         itr = 0
         
+        Z, Upsilon = F_tilde(Y, th, d_0, d, K, h)
+        err = J_func(Upsilon, c)
+        JJ = np.append(JJ, err)
+        
         while len(indexes) > 0:
             if (itr % 50 == 0):
                 print(siftnum,itr,totitr)
@@ -235,19 +241,9 @@ def stocgradient(c, d, d_0, K, h, Y, th, tau, max_it , bsize, sifts = 1):
                 
                 dJJ, th = train(cslice, d, d_0, K, h, Yslice, th, tau, max_it)
                 
-                JJ = np.append(JJ,dJJ)
+                #JJ = np.append(JJ,dJJ)
                 
                 indexes = indexes[bsize:]
-                
-                """
-                si = np.zeros(bsize).astype(int)
-                
-                for i in range(bsize):
-                    si[i] = np.where(indexes == bsliceI[i])[0]
-                
-                indexes = np.delete(indexes,si)
-                #indexes = np.delete(indexes,np.where(indexes == bsliceI))
-                """
                 
                 
             else:
@@ -257,7 +253,7 @@ def stocgradient(c, d, d_0, K, h, Y, th, tau, max_it , bsize, sifts = 1):
                 
                 dJJ, th = train(cslice, d, d_0, K, h, Yslice, th, tau, max_it)
                 
-                JJ = np.append(JJ,dJJ)
+                #JJ = np.append(JJ,dJJ)
                 
                 indexes = []
             
@@ -299,7 +295,7 @@ def main_magnus():
     
     batches = import_batches()
     batch1 = batches[0]
-    antB = 1
+    antB = 3
     testbatch = batches[antB-1]
     
     
@@ -308,8 +304,13 @@ def main_magnus():
     #c,a,b,alfa,beta = scale(batch1["c_q"])
     d_0 = Y.shape[0]
     d = d_0*2
+    
     I = Y.shape[1]
-    tau = 2/I
+    #tau = 2/I
+    
+    Ihat = 40
+    tau = 2/Ihat
+    
     
     
     
@@ -349,7 +350,7 @@ def main_magnus():
     c = c[:3000,:]
     """
     
-    #JJ, th = stocgradient(c, d, d_0, K, h, Y, th, tau, 1 , 40, sifts)
+    JJ, th = stocgradient(c, d, d_0, K, h, Y, th, tau, 1 , Ihat, sifts)
     #JJ, th = train(c, d, d_0, K, h, Y, th, tau, max_it)
     
     #JJ, th = variablestocgradient(c, d, d_0, K, h, Y, th, tau, 1 , max_it)
