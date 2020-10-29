@@ -184,9 +184,159 @@ def test_two_body():
     
     
     
+def train_nlp(pq):
+    
+    if pq == "p":
+        func = "1sqr"
+    elif pq == "q":
+        func = "1cos"
+    else:
+        raise Exception("p or q")
+    
+    
+    I = 8000
+    K = 20
+    h = 0.1
+    sifts = 300
+    Ihat = 40
+    tau = 3/Ihat
+    
+    data = generate_synthetic_batches(I, func)
+    
+    Y =data["Y"]
+    c = data["c"]
+    sc , invc = scale(c)
+    sparameters = scale(c,returnParameters = True)
+    
+    inv_file = open( pq + "_nlp_inv.pkl", "wb")
+    pickle.dump(sparameters, inv_file)
+    inv_file.close()
+    
+    d_0 = Y.shape[0]
+    d = d_0*2
+    
+    
+    
+    th = initialize_weights(d_0, d, K)
+    
+    JJ, th = stocgradient(sc, d, d_0, K, h, Y, th, tau, 1 , Ihat, sifts)
+    
+    plt.plot(JJ)
+    plt.yscale("log")
+    plt.show()
+    
+    
+    th_file = open(pq + "_nlp_w.pkl", "wb")
+    pickle.dump(th, th_file)
+    th_file.close()
+    
+    
+    
+def test_nlp(pq):
+    
+    numData = 20000
+    
+    K = 20
+    h = 0.1
+    d_0 = 1
+    d = 2
+    
+    if pq == "p":
+        Y  = np.linspace(-2,2,numData)
+        Y = Y[:,np.newaxis].T
+        c = 1/2*Y**2
+        c = c.T
+        
+    elif pq == "q":
+        Y = np.linspace(-np.pi/3,np.pi/3,numData)
+        Y = Y[:,np.newaxis].T
+        c = 1-np.cos(Y)
+        c = c.T
+    else:
+        raise Exception("p or q")
+        
+    
+    
+    
+    inv_file = open( pq + "_nlp_inv.pkl", "rb")
+    inv = pickle.load(inv_file)
+    inv_file.close()
+    
+    w_file = open(pq + "_nlp_w.pkl", "rb")
+    th = pickle.load(w_file)
+    w_file.close()
+    
+    
+    z, yhat = F_tilde(Y, th, d_0, d, K, h)
+    
+    y = invscaleparameter(yhat, inv[0], inv[1], inv[2], inv[3])
+    
+    plt.plot(Y.T,y)
+    plt.plot(Y.T,c)
+    plt.show()
+
+
+def test_euler():
+    
+    K = 20
+    hF = 0.1
+    
+    T = 1
+    h = 1e-5
+    N = int(T/h)
+    
+    invp_file = open("p_nlp_inv.pkl", "rb")
+    invp = pickle.load(invp_file)
+    invp_file.close()
+    
+    invq_file = open("q_nlp_inv.pkl", "rb")
+    invq = pickle.load(invq_file)
+    invq_file.close()
+    
+    wp_file = open("p_nlp_w.pkl", "rb")
+    thp = pickle.load(wp_file)
+    wp_file.close()
+
+    wq_file = open("q_nlp_w.pkl", "rb")
+    thq = pickle.load(wq_file)
+    wq_file.close()
+    
+    
+    p0 = np.array([1])[:,np.newaxis]
+    q0 = np.array([np.pi/4])[:,np.newaxis]
+    
+    
+    p,q = s_euler(p0, q0, thp, thq, hF, K, N, T, invp, invq)
+    
+    #p = invscaleparameter_no_shift(p, invp[0], invp[1], invp[2], invp[3])
+    #q = invscaleparameter_no_shift(q, invq[0], invq[1], invq[2], invq[3])
+    
+    plt.plot(p)
+    plt.plot(q)
+    plt.plot(p+q)
+    plt.show()
+    
+    
+    
+    
+    
+#test_two_body()
+#train_two_body()
+
+#train_nlp("p")
+
+
+#train_nlp("q")
+    
+#test_nlp("p")
+#test_nlp("q")
+
+test_euler()
     
 
-test_two_body()
-#train_two_body()
+
+
+
+
     
     

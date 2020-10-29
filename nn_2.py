@@ -73,8 +73,6 @@ def scale(x, alpha=0, beta=1, returnParameters = False):
     
     a = np.min(x)
     b = np.max(x)
-    print(a)
-    print(b)
     
     if returnParameters:
         
@@ -90,8 +88,10 @@ def scale(x, alpha=0, beta=1, returnParameters = False):
 
     
 def invscaleparameter(x, alpha, beta, a, b):
-    return ((x+alpha)*b - (x-beta)*a) / (beta-alpha)    
+    return ((x+alpha)*b - (x-beta)*a) / (beta-alpha)
 
+def invscaleparameter_no_shift(x, alpha, beta, a, b):
+    return x*(b-a)/(beta-alpha)
 
 def gradientDesent(K, th, dJ, tau):
     
@@ -215,7 +215,7 @@ def stocgradient(c, d, d_0, K, h, Y, th, tau, max_it , bsize, sifts = 100):
     I = Y.shape[1]
     totitr = int(I/bsize)
     for siftnum in range(sifts):
-        #print(siftnum)
+        print(siftnum)
         
         indexes = np.array(range(I))
         
@@ -228,9 +228,11 @@ def stocgradient(c, d, d_0, K, h, Y, th, tau, max_it , bsize, sifts = 100):
         JJ = np.append(JJ, err)
         
         while len(indexes) > 0:
+            """
             if (itr % 50 == 0):
                 print(siftnum,itr,totitr)
             itr +=1
+            """
             if len(indexes) >= bsize:
                 #bsliceI = np.random.choice( indexes, bsize, False)
                 bsliceI = indexes[:bsize]
@@ -273,14 +275,44 @@ def variablestocgradient(c, d, d_0, K, h, Y, th, tau, max_it, sifts):
     
     return JJ, th
     
-def dF_tilde_y(y, h, th, d_0, d, K ):
+def dF_tilde_y(y, h, th, d_0, d, K):
     
     Z, Upsilon = F_tilde(y, th, d_0, d, K, h)
+    
+    
+    
     dz =  np.identity(d)[:,:d_0]    
     for k in range(0,K):
         dz =  h* sigma(th["W"][k]@ Z[k] +  th["W"][k], derivative = True)@(th["W"][k] @dz) + dz     
     dUpsilon = eta(Z[K].T @ th["w"]  + th["mu"] )  @ (th["w"].T@dz)
     return dUpsilon 
+
+def s_euler(p0, q0, thp, thq, hF, K, N, T, invp, invq):
+    
+    h = T/N
+    
+    d_0 = p0.shape[0]
+    d = d_0*2
+    
+    p = np.zeros((N+1,1,1))
+    p[0] = p0
+    
+    q = np.zeros((N+1,1,1))
+    q[0] = q0
+    
+    for n in range(N):
+        print(n,N)
+        dTs = dF_tilde_y(p[n], hF, thp, d_0, d, K)
+        dT = invscaleparameter_no_shift(dTs, invp[0], invp[1], invp[2], invp[3])
+        dVs = dF_tilde_y(q[n], hF, thq, d_0, d, K)
+        dV = invscaleparameter_no_shift(dVs, invq[0], invq[1], invq[2], invq[3])
+        q[n+1] = q[n] + h*dT
+        p[n+1] = p[n] - h*dV
+    
+    p = np.reshape(p,N+1)
+    q = np.reshape(q,N+1)
+    return p,q
+    
 
 def main_magnus():
     K = 20
