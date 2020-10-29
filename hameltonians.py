@@ -29,20 +29,10 @@ def train_two_body():
     scp,invpc = scale(cp)
     parametersp = scale(cp,returnParameters = True)
     
-    
-    x = np.linspace(-2,2,I)
-    
-    q = np.array([-1/3*x,x])
-    
-    cq = -1/np.sqrt(q[0]**2 + q[1]**2)
-    cq = cq.T
-    
-    cq = cq[:, np.newaxis]
-    """
     q =qdata["Y"]
     cq = qdata["c"]
-    """
     scq,invqc = scale(cq)
+    
     parametersq = scale(cq,returnParameters = True)
     
     
