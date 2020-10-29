@@ -133,9 +133,9 @@ def dJ_func(c, Y, th, d_0, d, K, h):
     return dJ
 
 
-def adam_algebra(th, dJ, v, m, key, j):
+def adam_algebra(th, dJ, v, m, key, j,alpha =10**(-5)):
         beta_1, beta_2 =  0.9, 0.999
-        alpha, epsilon = 10**(-5), 10**(-8)
+        epsilon =  10**(-8)
     
     
         g = dJ[key] 
@@ -149,7 +149,7 @@ def adam_algebra(th, dJ, v, m, key, j):
     
 
 
-def train(c, d, d_0, K, h, Y, th, tau=0.0005, max_it=60, print_it=True, method="gd"):
+def train(c, d, d_0, K, h, Y, th, tau=0.0005, max_it=60, print_it=False, method="gd"):
     # compute Zk
     err = np.inf
     tol = 0.01
@@ -202,10 +202,10 @@ def train(c, d, d_0, K, h, Y, th, tau=0.0005, max_it=60, print_it=True, method="
         
         itr += 1
         
-        
+        """
         if(itr%50 == 0) and (print_it == True):
             print(itr,err)
-        
+        """
         
     return JJ , th
         
@@ -511,13 +511,13 @@ def main_isak():
     plt.plot(x.T,yhat.T)
     plt.show()
     """
-    plt.plot(JJ)
-    plt.show()
+    #plt.plot(JJ)
+    #plt.show()
     
     
     
 
 #main_magnus()
 #test_weights()
-main_isak()
+#main_isak()
 #plt.show()

@@ -15,7 +15,7 @@ def tau_sensitivity():
                 
     b = generate_synthetic_batches(I)
     
-    c, sa, sb, salpha, sbeta = scale(b["c"])
+    c, inv = scale(b["c"])
     Y = b["Y"]
     #Y = scale(b["Y"])
     d_0 = Y.shape[0]
@@ -26,7 +26,7 @@ def tau_sensitivity():
     for i in range(len(var)):    
         tau = var[i]
         th = initialize_weights(d_0, d, K)
-        JJ,th = train(c, d, d_0, K, h, Y, th, tau=tau, max_it=max_it)
+        JJ,th = train(c, d, d_0, K, h, Y, th, tau=tau, max_it=max_it, method="gd")
         plt.plot(it, JJ, label="tau: "+ str(tau))
     
     plt.savefig(file_paths["tau_sensitivity"] )
@@ -34,12 +34,40 @@ def tau_sensitivity():
     plt.legend()
     plt.show()
     
+def tauI_sensitivity(I):
+                
+    b = generate_synthetic_batches(I)
+    
+    c, inv = scale(b["c"])
+    Y = b["Y"]
+    #Y = scale(b["Y"])
+    d_0 = Y.shape[0]
+    
+    var = np.array([ 40, 20, 10, 5, 2, 0.2])/I
+    it = np.arange(0,max_it+1)
+    
+    for i in range(len(var)):    
+        tau = var[i]
+        th = initialize_weights(d_0, d, K)
+        JJ,th = train(c, d, d_0, K, h, Y, th, tau=tau, max_it=max_it, method="gd")
+        plt.plot(it, JJ, label="tau: "+ str(tau*I) + "/I")
+    
+    plt.savefig(file_paths["tau_sensitivity"] )
+    plt.title("Tau Sensitivity Analysis, I: "+str(I))
+    plt.legend()
+    plt.show()
+    
+def I_selection():       
+    var = [5, 10, 15, 20, 40, 80, 160, 320]
+    for I in var:
+        tauI_sensitivity(I)
+    
 
 def K_sensitivity():
              
     b = generate_synthetic_batches(I)
     
-    c, sa, sb, salpha, sbeta = scale(b["c"])
+    c, inv = scale(b["c"])
     Y = b["Y"]
     #Y = scale(b["Y"])
     d_0 = Y.shape[0]
@@ -50,7 +78,7 @@ def K_sensitivity():
     for i in range(len(var)):    
         K = var[i]
         th = initialize_weights(d_0, d, K)
-        JJ,th = train(c, d, d_0, K, h, Y, th, tau=tau, max_it=max_it)
+        JJ,th = train(c, d, d_0, K, h, Y, th, tau=tau, max_it=max_it, method="gd")
         plt.plot(it, JJ, label="K: "+ str(var[i]))
     
     plt.title("K Sensitivity Analysis")
@@ -64,7 +92,7 @@ def h_sensitivity():
              
     b = generate_synthetic_batches(I)
     
-    c, sa, sb, salpha, sbeta = scale(b["c"])
+    c, inv = scale(b["c"])
     Y = b["Y"]
     #Y = scale(b["Y"])
     d_0 = Y.shape[0]
@@ -75,7 +103,7 @@ def h_sensitivity():
     for i in range(len(var)):    
         h = var[i]
         th = initialize_weights(d_0, d, K)
-        JJ,th = train(c, d, d_0, K, h, Y, th, tau=tau, max_it=max_it)
+        JJ,th = train(c, d, d_0, K, h, Y, th, tau=tau, max_it=max_it, method="gd")
         plt.plot(it, JJ, label="h: "+ str(var[i]))
     
     plt.title("h Sensitivity Analysis")
@@ -88,7 +116,7 @@ def d_sensitivity():
              
     b = generate_synthetic_batches(I)
     
-    c, sa, sb, salpha, sbeta = scale(b["c"])
+    c, inv = scale(b["c"])
     Y = b["Y"]
     #Y = scale(b["Y"])
     d_0 = Y.shape[0]
@@ -99,7 +127,7 @@ def d_sensitivity():
     for i in range(len(var)):    
         d = var[i]
         th = initialize_weights(d_0, d, K)
-        JJ,th = train(c, d, d_0, K, h, Y, th, tau=tau, max_it=max_it)
+        JJ,th = train(c, d, d_0, K, h, Y, th, tau=tau, max_it=max_it, method="gd")
         plt.plot(it, JJ, label="d: "+ str(var[i]))
     
     plt.title("d Sensitivity Analysis")
@@ -115,14 +143,15 @@ def I_sensitivity():
     for i in range(len(var)):    
         I = var[i]
         b = generate_synthetic_batches(I)
-        c, sa, sb, salpha, sbeta = scale(b["c"])
+        c, inv = scale(b["c"])
         Y = b["Y"]
         #Y = scale(b["Y"])
         d_0 = Y.shape[0]
     
         print("I:", I)
         th = initialize_weights(d_0, d, K)
-        JJ,th = train(c, d, d_0, K, h, Y, th, tau=tau, max_it=max_it, print_it=False)
+        JJ,th = train(c, d, d_0, K, h, Y, th, tau=tau, max_it=max_it, print_it=False, method="gd")
+        JJ = JJ/JJ[0]
         plt.plot(it, JJ, label="I: "+ str(var[i]))
     
     #plt.yscale("log")
@@ -192,14 +221,15 @@ K = 20
 h = 0.1
 d_0 = 2
 d = 4
-I = 20
+I = 600
 max_it = 300
 tau = 0.1
 
 
-K_sensitivity()
+#K_sensitivity()
 tau_sensitivity()
-h_sensitivity()
-d_sensitivity()
-I_sensitivity()
+#h_sensitivity()
+#d_sensitivity()
+#I_sensitivity()
+I_selection()
 #Ib_sensitivity()
