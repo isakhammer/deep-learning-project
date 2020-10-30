@@ -280,7 +280,6 @@ def dF_tilde_y(y, h, th, d_0, d, K):
     Z, Upsilon = F_tilde(y, th, d_0, d, K, h)
     
     
-    
     dz =  np.identity(d)[:,:d_0]    
     for k in range(0,K):
         dz =  h* sigma(th["W"][k]@ Z[k] +  th["W"][k], derivative = True)@(th["W"][k] @dz) + dz     
@@ -288,6 +287,7 @@ def dF_tilde_y(y, h, th, d_0, d, K):
     return dUpsilon 
 
 def s_euler(p0, q0, thp, thq, hF, K, N, T, invp, invq):
+    
     
     h = T/N
     
@@ -301,11 +301,16 @@ def s_euler(p0, q0, thp, thq, hF, K, N, T, invp, invq):
     q[0] = q0
     
     for n in range(N):
-        print(n,N)
+        #print(n,N)
+        """
+        dT = p[n]
+        dV = np.sin(q[n])
+        """
         dTs = dF_tilde_y(p[n], hF, thp, d_0, d, K)
         dT = invscaleparameter_no_shift(dTs, invp[0], invp[1], invp[2], invp[3])
         dVs = dF_tilde_y(q[n], hF, thq, d_0, d, K)
         dV = invscaleparameter_no_shift(dVs, invq[0], invq[1], invq[2], invq[3])
+        
         q[n+1] = q[n] + h*dT
         p[n+1] = p[n] - h*dV
     

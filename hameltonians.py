@@ -234,7 +234,7 @@ def train_nlp(pq):
     
 def test_nlp(pq):
     
-    numData = 20000
+    numData = 20
     
     K = 20
     h = 0.1
@@ -265,11 +265,11 @@ def test_nlp(pq):
     w_file = open(pq + "_nlp_w.pkl", "rb")
     th = pickle.load(w_file)
     w_file.close()
-    
-    
+    print(Y)
     z, yhat = F_tilde(Y, th, d_0, d, K, h)
     
     y = invscaleparameter(yhat, inv[0], inv[1], inv[2], inv[3])
+    print(y)
     
     plt.plot(Y.T,y)
     plt.plot(Y.T,c)
@@ -280,10 +280,12 @@ def test_euler():
     
     K = 20
     hF = 0.1
+    d_0 = 1
+    d = d_0*2
     
-    T = 1
-    h = 1e-5
-    N = int(T/h)
+    T = 6
+    dt = 1e-3
+    N = int(T/dt)
     
     invp_file = open("p_nlp_inv.pkl", "rb")
     invp = pickle.load(invp_file)
@@ -303,7 +305,7 @@ def test_euler():
     
     
     p0 = np.array([1])[:,np.newaxis]
-    q0 = np.array([np.pi/4])[:,np.newaxis]
+    q0 = np.array([0])[:,np.newaxis]
     
     
     p,q = s_euler(p0, q0, thp, thq, hF, K, N, T, invp, invq)
@@ -313,7 +315,23 @@ def test_euler():
     
     plt.plot(p)
     plt.plot(q)
-    plt.plot(p+q)
+    #plt.plot(p+q)
+    plt.show()
+    
+    """
+    zp, Tps = F_tilde(p[:,np.newaxis].T, thp, d_0, d, K, hF)
+    zq, Vqs = F_tilde(q[:,np.newaxis].T, thq, d_0, d, K, hF)
+    
+    Tp = invscaleparameter(Tps, invp[0], invp[1], invp[2], invp[3])
+    Vq = invscaleparameter(Vqs, invq[0], invq[1], invq[2], invq[3])
+    """
+    Tp = 1/2*p**2
+    Vq = 1-np.cos(q)
+    
+    
+    plt.plot(np.reshape(Tp,len(Tp)))
+    plt.plot(np.reshape(Vq,len(Vq)))
+    plt.plot(Tp+Vq)
     plt.show()
     
     
