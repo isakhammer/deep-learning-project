@@ -274,17 +274,17 @@ def variablestocgradient(c, d, d_0, K, h, Y, th, tau, max_it, sifts):
     
     
     return JJ, th
-    
+
 def dF_tilde_y(y, h, th, d_0, d, K):
     
     Z, Upsilon = F_tilde(y, th, d_0, d, K, h)
     
-    
     dz =  np.identity(d)[:,:d_0]    
     for k in range(0,K):
         dz =  h* sigma(th["W"][k]@ Z[k] +  th["W"][k], derivative = True)@(th["W"][k] @dz) + dz     
-    dUpsilon = eta(Z[K].T @ th["w"]  + th["mu"] )  @ (th["w"].T@dz)
-    return dUpsilon
+    dUpsilon = eta(Z[K].T @ th["w"]  + th["mu"], derivative=True )  @ (th["w"].T@dz)
+    #print("zk", Z[K])
+    return dUpsilon 
 
 def dF_tilde_y2(y, h, th, d_0, d, K):
     
