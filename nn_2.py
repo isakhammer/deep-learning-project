@@ -284,7 +284,29 @@ def dF_tilde_y(y, h, th, d_0, d, K):
     for k in range(0,K):
         dz =  h* sigma(th["W"][k]@ Z[k] +  th["W"][k], derivative = True)@(th["W"][k] @dz) + dz     
     dUpsilon = eta(Z[K].T @ th["w"]  + th["mu"] )  @ (th["w"].T@dz)
-    return dUpsilon 
+    return dUpsilon
+
+def dF_tilde_y2(y, h, th, d_0, d, K):
+    
+    Z, Upsilon = F_tilde(y, th, d_0, d, K, h)
+    
+    
+    dGZK = eta(th["w"][:d_0].T@Z[K][:d_0]+ th["mu"], derivative = True) * th["w"][:d_0]
+    
+    A = dGZK
+    
+    for k in range(K,0,-1):
+        A = A + th["W"][k-1][:d_0,:d_0]@(h*sigma((th["W"][k-1][:d_0,:d_0]@Z[k-1][:d_0] + th["b"][k-1][:d_0]), derivative = True)*A)
+   
+    """
+    dGZK = eta(th["w"].T@Z[K]+ th["mu"], derivative = True) * th["w"]
+    
+    A = dGZK
+    for k in range(K,0,-1):
+        A = A + th["W"][k-1]@(h*sigma((th["W"][k-1]@Z[k-1] + th["b"][k-1]), derivative = True)*A)
+    """
+    
+    return A
 
 def s_stormer(p0, q0, thp, thq, hF, K, N, T, invp, invq):
     
@@ -350,13 +372,20 @@ def s_euler(p0, q0, thp, thq, hF, K, N, T, invp, invq):
         dT = p[n]
         dV = np.sin(q[n])
         """
+        
+        dTs = dF_tilde_y2(p[n], hF, thp, d_0, d, K)
+        dT = invscaleparameter_no_shift(dTs, invp[0], invp[1], invp[2], invp[3])
+        dVs = dF_tilde_y2(q[n], hF, thq, d_0, d, K)
+        dV = invscaleparameter_no_shift(dVs, invq[0], invq[1], invq[2], invq[3])
+        
+        """
         dTs = dF_tilde_y(p[n], hF, thp, d_0, d, K)
         dT = invscaleparameter_no_shift(dTs, invp[0], invp[1], invp[2], invp[3])
         dVs = dF_tilde_y(q[n], hF, thq, d_0, d, K)
         dV = invscaleparameter_no_shift(dVs, invq[0], invq[1], invq[2], invq[3])
-        
-        q[n+1] = q[n] + h*dT
-        p[n+1] = p[n] - h*dV
+        """
+        q[n+1] = q[n] + h*dT[:d_0]
+        p[n+1] = p[n] - h*dV[:d_0]
     
     p = np.reshape(p,N+1)
     q = np.reshape(q,N+1)

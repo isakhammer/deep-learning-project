@@ -16,6 +16,7 @@ from data import *
 from nn_2 import *
 
 def train_two_body(pq):
+    
     if pq == "p":
         func = "2sqr"
     elif pq == "q":
@@ -27,7 +28,9 @@ def train_two_body(pq):
     I = 8000
     K = 20
     h = 0.1
-    sifts = 100
+    sifts = 400
+    Ihat = 400
+    tau = 2/Ihat
     
     qdata = generate_synthetic_batches(I, func=func)
     
@@ -46,8 +49,7 @@ def train_two_body(pq):
     d_0 = q.shape[0]
     d = d_0*2
     
-    Ihat = 40
-    tau = 3/Ihat
+    
     
     thq = initialize_weights(d_0, d, K)
     
@@ -58,68 +60,10 @@ def train_two_body(pq):
     plt.show()
     
     
-    thq_file = open(func + "_inv.pkl", "wb")
+    thq_file = open(pq + "_tb_w.pkl", "wb")
     pickle.dump(thq, thq_file)
     thq_file.close()
-
-"""
-def train_two_body():
-    I = 8000
-    K = 20
-    h = 0.1
-    sifts = 100
-    
-    pdata = generate_synthetic_batches(I,func = "2sqr")
-    qdata = generate_synthetic_batches(I,func = "2norm-1")
-    
-    p = pdata["Y"]
-    cp = pdata["c"]
-    scp,invpc = scale(cp)
-    parametersp = scale(cp,returnParameters = True)
-    
-    q =qdata["Y"]
-    cq = qdata["c"]
-    scq,invqc = scale(cq)
-    
-    parametersq = scale(cq,returnParameters = True)
-    
-    
-    invp_file = open("tbinvp.pkl", "wb")
-    pickle.dump(parametersp, invp_file)
-    invp_file.close()
-    
-    invq_file = open("tbinvq.pkl", "wb")
-    pickle.dump(parametersq, invq_file)
-    invq_file.close()
-    
-    
-    
-    d_0 = p.shape[0]
-    d = d_0*2
-    
-    Ihat = 40
-    tau = 3/Ihat
-    
-    thp = initialize_weights(d_0, d, K)
-    thq = initialize_weights(d_0, d, K)
-    
-    JJp, thp = stocgradient(scp, d, d_0, K, h, p, thp, tau, 1 , Ihat, sifts)
-    JJq, thq = stocgradient(scq, d, d_0, K, h, q, thq, tau, 1 , Ihat, sifts)
-    
-    plt.plot(JJp)
-    plt.plot(JJq)
-    plt.yscale("log")
-    plt.show()
-    
-    thp_file = open("tbpw.pkl", "wb")
-    pickle.dump(thp, thp_file)
-    thp_file.close()
-    
-    thq_file = open("tbqw.pkl", "wb")
-    pickle.dump(thq, thq_file)
-    thq_file.close()
-    
- """   
+ 
     
 def test_two_body():
     
@@ -130,10 +74,14 @@ def test_two_body():
     d_0 = 2
     d = 4
     
-    x = np.linspace(-2,2,numData)
+    x1 = np.linspace(-2,2,numData)
     
-    p = np.array([x,-1/2*x])  
-    q = np.array([-1/3*x,x])
+    x2hat1 = np.linspace(-2,-1/4,int(numData/2))
+    x2hat2 = np.linspace(1/4,2,int(numData/2))
+    x2 = np.append(x2hat1,x2hat2)
+    
+    p = np.array([x1,-1/2*x1])  
+    q = np.array([-1/3*x2,x2])
     
     pc = 0.5*p[0]**2 + 0.5*p[1]**2
     pc = pc[:, np.newaxis]
@@ -142,19 +90,19 @@ def test_two_body():
     qc = qc.T
     qc = qc[:, np.newaxis]
     
-    pp_file = open("tbinvp.pkl", "rb")
+    pp_file = open("p_tb_inv.pkl", "rb")
     pinvp = pickle.load(pp_file)
     pp_file.close()
     
-    qp_file = open("tbinvq.pkl", "rb")
+    qp_file = open("q_tb_inv.pkl", "rb")
     qinvp = pickle.load(qp_file)
     qp_file.close()
     
-    pw_file = open("tbpw.pkl", "rb")
+    pw_file = open("p_tb_w.pkl", "rb")
     thp = pickle.load(pw_file)
     pw_file.close()
     
-    qw_file = open("tbqw.pkl", "rb")
+    qw_file = open("q_tb_w.pkl", "rb")
     thq = pickle.load(qw_file)
     qw_file.close()
     
@@ -167,7 +115,7 @@ def test_two_body():
     
     
     plt.plot(yq)
-    #plt.plot(qc)
+    plt.plot(qc)
     plt.show()
     plt.plot(yp)
     plt.plot(pc)
@@ -188,7 +136,7 @@ def train_nlp(pq):
     I = 8000
     K = 20
     h = 0.1
-    sifts = 1200
+    sifts = 2400
     Ihat = 320
     tau = 3/Ihat
     
@@ -225,7 +173,7 @@ def train_nlp(pq):
     
 def test_nlp(pq):
     
-    numData = 20
+    numData = 2000
     
     K = 20
     h = 0.1
@@ -264,6 +212,169 @@ def test_nlp(pq):
     plt.show()
 
 
+def test_nlp_grad(pq):
+    
+    numData = 2000
+    
+    K = 20
+    h = 0.1
+    d_0 = 1
+    d = 2
+    
+    if pq == "p":
+        Y  = np.linspace(-2,2,numData)
+        Y = Y[:,np.newaxis].T
+        c = Y
+        c = c.T
+        
+    elif pq == "q":
+        Y = np.linspace(-np.pi/3,np.pi/3,numData)
+        Y = Y[:,np.newaxis].T
+        c = np.sin(Y)
+        c = c.T
+    else:
+        raise Exception("p or q")
+    
+    
+    inv_file = open( pq + "_nlp_inv.pkl", "rb")
+    inv = pickle.load(inv_file)
+    inv_file.close()
+    
+    w_file = open(pq + "_nlp_w.pkl", "rb")
+    th = pickle.load(w_file)
+    w_file.close()
+    
+    """
+    yhat = np.zeros(numData)
+    
+    for i in range(numData):
+        yhat[i] = dF_tilde_y2(Y.T[i,np.newaxis], h, th, d_0, d, K)
+        
+    y = invscaleparameter_no_shift(yhat, inv[0], inv[1], inv[2], inv[3])
+    
+    """
+    yhat = dF_tilde_y2(Y, h, th, d_0, d, K)
+    y = invscaleparameter_no_shift(yhat[0], inv[0], inv[1], inv[2], inv[3])
+    
+    
+    plt.plot(Y.T,y, label ="y")
+    plt.plot(Y.T,c, label ="c")
+    plt.axhline(y = 0)
+    plt.legend()
+    plt.show()
+
+
+def train_unknown(pq):
+    
+    K = 20
+    h = 0.1
+    sifts = 1000
+    Ihat = 2000
+    tau = 2/Ihat
+    
+    batches = import_batches()
+    batch1 = batches[0]
+    antB = 3
+    
+    
+    bigbatch = {}
+    bigbatch["Y"] = np.array([[],[],[]])
+    bigbatch["c"] = np.array([])
+    
+    for i in range(antB):
+        batch = batches[i]
+        bigbatch["Y"] = np.append(bigbatch["Y"],batch["Y_"+pq],1)
+        bigbatch["c"] = np.append(bigbatch["c"],batch["c_"+pq])
+        
+    Y = bigbatch["Y"]
+    c = bigbatch["c"][:,np.newaxis]
+    
+    sc,inv = scale(c)
+    
+    sparameters = scale(c,returnParameters = True)
+    
+    
+    inv_file = open(pq + "_unknown_inv.pkl", "wb")
+    pickle.dump(sparameters, inv_file)
+    inv_file.close()
+    
+    d_0 = Y.shape[0]
+    d = d_0*2
+    
+    
+    
+    th = initialize_weights(d_0, d, K)
+    
+    JJ, th = stocgradient(sc, d, d_0, K, h, Y, th, tau, 1 , Ihat, sifts)
+    
+    plt.plot(JJ)
+    plt.yscale("log")
+    plt.show()
+    
+    
+    th_file = open(pq + "_unknown_w.pkl", "wb")
+    pickle.dump(th, th_file)
+    th_file.close()
+    
+    
+
+def test_unknown(pq):
+    numData = 2000
+    
+    K = 20
+    h = 0.1
+    
+    if pq == "p":
+        Y  = np.linspace(-2,2,numData)
+        Y = Y[:,np.newaxis].T
+        c = 1/2*Y**2
+        c = c.T
+        
+    elif pq == "q":
+        Y = np.linspace(-np.pi/3,np.pi/3,numData)
+        Y = Y[:,np.newaxis].T
+        c = 1-np.cos(Y)
+        c = c.T
+    else:
+        raise Exception("p or q")
+    
+    
+    inv_file = open( pq + "_unknown_inv.pkl", "rb")
+    inv = pickle.load(inv_file)
+    inv_file.close()
+    
+    w_file = open(pq + "_unknown_w.pkl", "rb")
+    th = pickle.load(w_file)
+    w_file.close()
+    
+    batches = import_batches()
+    batch1 = batches[0]
+    antB = 3
+    
+    Y = batch1["Y_q"]
+    d_0 = Y.shape[0]
+    d = d_0*2
+    
+    for i in range(antB):
+        plt.title("Batch: " + str(i))
+        testbatch = batches[i]
+    
+        tY = testbatch["Y_"+pq]
+        tc,invt = scale(testbatch["c_"+pq])
+        
+        z, yhat = F_tilde(tY, th, d_0, d, K, h)
+        
+        
+        y = invscaleparameter(yhat, inv[0], inv[1], inv[2], inv[3])
+        ic = invt(tc)
+        
+        plt.plot(y,label ="y")
+        plt.plot(ic,label ="c")
+        plt.legend()
+        plt.show()
+    
+    
+
 def test_euler():
     
     K = 20
@@ -271,8 +382,8 @@ def test_euler():
     d_0 = 1
     d = d_0*2
     
-    T = 6
-    dt = 1e-3
+    T = 2
+    dt = 1e-4
     N = int(T/dt)
     
     invp_file = open("p_nlp_inv.pkl", "rb")
@@ -292,12 +403,12 @@ def test_euler():
     wq_file.close()
     
     
-    p0 = np.array([1])[:,np.newaxis]
+    p0 = np.array([0.5])[:,np.newaxis]
     q0 = np.array([0])[:,np.newaxis]
     
     
-    #p,q = s_euler(p0, q0, thp, thq, hF, K, N, T, invp, invq)
-    p,q = s_stormer(p0, q0, thp, thq, hF, K, N, T, invp, invq)
+    p,q = s_euler(p0, q0, thp, thq, hF, K, N, T, invp, invq)
+    #p,q = s_stormer(p0, q0, thp, thq, hF, K, N, T, invp, invq)
     
     #p = invscaleparameter_no_shift(p, invp[0], invp[1], invp[2], invp[3])
     #q = invscaleparameter_no_shift(q, invq[0], invq[1], invq[2], invq[3])
@@ -326,22 +437,28 @@ def test_euler():
     plt.show()
     
     
+
+
     
     
-    
+
+#train_two_body("p")
+#train_two_body("q")
 #test_two_body()
-#train_two_body()
 
-train_nlp("p")
-
-
-train_nlp("q")
+#train_nlp("p")
+#train_nlp("q")
     
 #test_nlp("p")
+#test_nlp_grad("p")
+
 #test_nlp("q")
+#test_nlp_grad("q")
 
 #test_euler()
     
+#train_unknown("p")
+test_unknown("p")   
 
 
 

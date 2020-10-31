@@ -52,13 +52,17 @@ def generate_synthetic_batches(I,func = "2sqr"):
     
     elif func == "2norm-1":
         d_0 = 2
-        batch["Y"] = np.random.uniform(high=2, low=-2, size=(d_0,I))
         
-        #origo = np.zeros((d_0,1))
+        if I%2 == 1:
+            raise Exception("I not even")
+            
         
-        for y in batch["Y"].T:
-            if (np.all(y == 0)):
-                y = np.array([0.1,0.1])
+        Y1 = np.random.uniform(high=2, low=1/4, size=(d_0,int(I/2)))
+        Y2 = -np.random.uniform(high=2, low=1/4, size=(d_0,int(I/2)))
+        Y = np.append(Y1,Y2,1)
+        np.random.shuffle(Y)
+        batch["Y"] = Y
+        
         
         batch["c"] = -1/np.sqrt(batch["Y"][0]**2 + batch["Y"][1]**2)
         batch["c"] = batch["c"].T
@@ -88,8 +92,8 @@ def import_batches():
         batch = {}
         #batch["t"] = batch_data[:, 0, np.newaxis]
         batch["Y_q"] = batch_data[:, 1:4].T
-        #batch["Y_p"] = batch_data[:, 4:7].T
-        #batch["c_p"] = batch_data[:, 7, np.newaxis] 
+        batch["Y_p"] = batch_data[:, 4:7].T
+        batch["c_p"] = batch_data[:, 7, np.newaxis] 
         batch["c_q"] = batch_data[:, 8, np.newaxis] # potential energy
         
         batches[i] = batch
@@ -112,8 +116,8 @@ def import_one_batch():
     batch = {}
     #batch["t"] = batch_data[:, 0, np.newaxis]
     batch["Y_q"] = batch_data[:, 1:4].T
-    #batch["Y_p"] = batch_data[:, 4:7].T
-    #batch["c_p"] = batch_data[:, 7, np.newaxis] 
+    batch["Y_p"] = batch_data[:, 4:7].T
+    batch["c_p"] = batch_data[:, 7, np.newaxis] 
     batch["c_q"] = batch_data[:, 8, np.newaxis] # potential energy
         
     batches[0] = batch
