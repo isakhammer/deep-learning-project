@@ -302,19 +302,29 @@ def s_stormer(p0, q0, thp, thq, hF, K, N, T, invp, invq):
     for n in range(N):
         
         # 1
+        """
+        dV = np.sin(q[n])
+        phat = p[n] - h/2*dV
+        dT = phat
+        q[n+1] = q[n] + h*dT
+        dV = np.sin(q[n+1])
+        p[n+1] = phat - h/2*dV
+        
+        """
         dVs = dF_tilde_y(q[n], hF, thq, d_0, d, K)
         dV = invscaleparameter_no_shift(dVs, invq[0], invq[1], invq[2], invq[3])
         p_hat = p[n] - (h/2)*dV
         
         # 2
-        dTs = dF_tilde_y(p[n], hF, thp, d_0, d, K)
+        dTs = dF_tilde_y(p_hat, hF, thp, d_0, d, K)
         dT = invscaleparameter_no_shift(dTs, invp[0], invp[1], invp[2], invp[3])
-        q[n+1] = q[n] + (h/2)*dT        
+        q[n+1] = q[n] + h*dT        
         
         # 3
         dVs = dF_tilde_y( q[n+1], hF, thq, d_0, d, K)
-        dV1 = invscaleparameter_no_shift(dVs, invp[0], invp[1], invp[2], invp[3])
-        p[n+1] = p_hat + (h/2)*dV1
+        dV1 = invscaleparameter_no_shift(dVs, invq[0], invq[1], invq[2], invq[3])
+        p[n+1] = p_hat - (h/2)*dV1
+        
         
     p = np.reshape(p,N+1)
     q = np.reshape(q,N+1)

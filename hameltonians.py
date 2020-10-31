@@ -130,12 +130,9 @@ def test_two_body():
     d_0 = 2
     d = 4
     
-    
-    
     x = np.linspace(-2,2,numData)
     
-    p = np.array([x,-1/2*x])
-    
+    p = np.array([x,-1/2*x])  
     q = np.array([-1/3*x,x])
     
     pc = 0.5*p[0]**2 + 0.5*p[1]**2
@@ -144,8 +141,6 @@ def test_two_body():
     qc = -1/np.sqrt(q[0]**2 + q[1]**2)
     qc = qc.T
     qc = qc[:, np.newaxis]
-    
-    
     
     pp_file = open("tbinvp.pkl", "rb")
     pinvp = pickle.load(pp_file)
@@ -180,10 +175,6 @@ def test_two_body():
     
     
     
-    
-    
-    
-    
 def train_nlp(pq):
     
     if pq == "p":
@@ -197,8 +188,8 @@ def train_nlp(pq):
     I = 8000
     K = 20
     h = 0.1
-    sifts = 300
-    Ihat = 40
+    sifts = 1200
+    Ihat = 320
     tau = 3/Ihat
     
     data = generate_synthetic_batches(I, func)
@@ -254,8 +245,6 @@ def test_nlp(pq):
         c = c.T
     else:
         raise Exception("p or q")
-        
-    
     
     
     inv_file = open( pq + "_nlp_inv.pkl", "rb")
@@ -265,14 +254,13 @@ def test_nlp(pq):
     w_file = open(pq + "_nlp_w.pkl", "rb")
     th = pickle.load(w_file)
     w_file.close()
-    print(Y)
     z, yhat = F_tilde(Y, th, d_0, d, K, h)
     
     y = invscaleparameter(yhat, inv[0], inv[1], inv[2], inv[3])
-    print(y)
     
-    plt.plot(Y.T,y)
-    plt.plot(Y.T,c)
+    plt.plot(Y.T,y, label ="y")
+    plt.plot(Y.T,c, label ="c")
+    plt.legend()
     plt.show()
 
 
@@ -308,14 +296,16 @@ def test_euler():
     q0 = np.array([0])[:,np.newaxis]
     
     
-    p,q = s_euler(p0, q0, thp, thq, hF, K, N, T, invp, invq)
+    #p,q = s_euler(p0, q0, thp, thq, hF, K, N, T, invp, invq)
+    p,q = s_stormer(p0, q0, thp, thq, hF, K, N, T, invp, invq)
     
     #p = invscaleparameter_no_shift(p, invp[0], invp[1], invp[2], invp[3])
     #q = invscaleparameter_no_shift(q, invq[0], invq[1], invq[2], invq[3])
     
-    plt.plot(p)
-    plt.plot(q)
+    plt.plot(p, label="p")
+    plt.plot(q, label="q")
     #plt.plot(p+q)
+    plt.legend()
     plt.show()
     
     """
@@ -329,9 +319,10 @@ def test_euler():
     Vq = 1-np.cos(q)
     
     
-    plt.plot(np.reshape(Tp,len(Tp)))
-    plt.plot(np.reshape(Vq,len(Vq)))
-    plt.plot(Tp+Vq)
+    plt.plot(np.reshape(Tp,len(Tp)), label="T")
+    plt.plot(np.reshape(Vq,len(Vq)),  label ="V")
+    plt.plot(Tp+Vq, label ="T + V")
+    plt.legend()
     plt.show()
     
     
@@ -341,15 +332,15 @@ def test_euler():
 #test_two_body()
 #train_two_body()
 
-#train_nlp("p")
+train_nlp("p")
 
 
-#train_nlp("q")
+train_nlp("q")
     
 #test_nlp("p")
 #test_nlp("q")
 
-test_euler()
+#test_euler()
     
 
 
