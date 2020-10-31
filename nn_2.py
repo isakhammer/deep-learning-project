@@ -395,10 +395,12 @@ def s_euler(p0, q0, thp, thq, hF, K, N, T, invp, invq):
 def main_magnus():
     K = 20
     h = 0.1
-    #I = 80
-    max_it = 1000
-    sifts = 110
+    #bsize = 1024
+    bsize = 40
+    max_it = 1
+    sifts = 300
     #tau = 0.1
+    tau = 2/bsize
     
     
     batches = import_batches()
@@ -458,10 +460,7 @@ def main_magnus():
     c = c[:3000,:]
     """
     
-    #JJ, th = stocgradient(c, d, d_0, K, h, Y, th, tau, 1 , 40, sifts)
-    #J, th = train(c, d, d_0, K, h, Y, th, tau, max_it, method="gd", alpha=7.5*10**(-5)/I)
-    J, th = train(c, d, d_0, K, h, Y, th, tau, max_it, method="adam", alpha=7.5*10**(-5)/I)
-    
+    JJ, th = stocgradient(c, d, d_0, K, h, Y, th, tau, 1 , bsize, sifts)
     #JJ, th = variablestocgradient(c, d, d_0, K, h, Y, th, tau, 1 , max_it)
     #JJ, th = train(c, d, d_0, K, h, Y, th, tau, sifts)    
     ####
@@ -503,9 +502,6 @@ def main_magnus():
     pickle.dump(th, th_file)
     th_file.close()
 
-    #a_file = open("data.pkl", "rb")
-    #output = pickle.load(a_file)
-    #print(output)
     
     
     
@@ -589,9 +585,10 @@ def test_weights():
 def main_isak():
     K = 20
     h = 0.1
-    I = 400
-    tau = 0.1
-    max_it = 30000
+    I = 8000
+    #tau = 0.1
+    tau = 2/I
+    max_it = 10000
 
     b = generate_synthetic_batches(I,"2norm-1")
     #b = generate_synthetic_batches(I)
@@ -624,10 +621,13 @@ def main_isak():
     #plt.plot(JJ)
     #plt.show()
     
+    plt.plot(JJ)
+    plt.yscale("log")
+    plt.show()
     
     
 
-#main_magnus()
+main_magnus()
 #test_weights()
 #main_isak()
 #plt.show()
