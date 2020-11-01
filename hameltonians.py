@@ -15,7 +15,7 @@ import pickle
 from data import *
 from nn_2 import *
 
-def train_two_body(pq):
+def train_two_body(pq, continue_training = False):
     
     if pq == "p":
         func = "2sqr"
@@ -28,17 +28,18 @@ def train_two_body(pq):
     I = 8000
     K = 20
     h = 0.1
-    sifts = 400
+    sifts = 800
     Ihat = 400
     tau = 2/Ihat
     
     qdata = generate_synthetic_batches(I, func=func)
     
+    
     q =qdata["Y"]
     cq = qdata["c"]
-    scq,invqc = scale(cq)
+    scq,invqc = scale(cq, alpha=0.1, beta=0.9)
     
-    parametersq = scale(cq,returnParameters = True)
+    parametersq = scale(cq, alpha=0.1, beta=0.9, returnParameters = True)
     
     
     
@@ -50,10 +51,17 @@ def train_two_body(pq):
     d = d_0*2
     
     
-    
-    thq = initialize_weights(d_0, d, K)
+    if continue_training:
+        qw_file = open( pq + "_tb_w.pkl", "rb")
+        thq = pickle.load(qw_file)
+        qw_file.close()
+        
+    else:
+        thq = initialize_weights(d_0, d, K)
+        
     
     JJq, thq = stocgradient(scq, d, d_0, K, h, q, thq, tau, 1 , Ihat, sifts)
+        
     
     plt.plot(JJq)
     plt.yscale("log")
@@ -81,7 +89,7 @@ def test_two_body():
     x2 = np.append(x2hat1,x2hat2)
     
     p = np.array([x1,-1/2*x1])  
-    q = np.array([-1/3*x2,x2])
+    q = np.array([x2,-x2])
     
     pc = 0.5*p[0]**2 + 0.5*p[1]**2
     pc = pc[:, np.newaxis]
@@ -259,7 +267,7 @@ def test_nlp_grad(pq):
     
     plt.plot(Y.T,y, label ="y")
     plt.plot(Y.T,c, label ="c")
-    plt.axhline(y = 0)
+    #plt.axhline(y = 0)
     plt.legend()
     plt.show()
 
@@ -382,7 +390,7 @@ def test_euler():
     d_0 = 1
     d = d_0*2
     
-    T = 2
+    T = 4
     dt = 1e-4
     N = int(T/dt)
     
@@ -407,8 +415,8 @@ def test_euler():
     q0 = np.array([0])[:,np.newaxis]
     
     
-    p,q = s_euler(p0, q0, thp, thq, hF, K, N, T, invp, invq)
-    #p,q = s_stormer(p0, q0, thp, thq, hF, K, N, T, invp, invq)
+    #p,q = s_euler(p0, q0, thp, thq, hF, K, N, T, invp, invq)
+    p,q = s_stormer(p0, q0, thp, thq, hF, K, N, T, invp, invq)
     
     #p = invscaleparameter_no_shift(p, invp[0], invp[1], invp[2], invp[3])
     #q = invscaleparameter_no_shift(q, invq[0], invq[1], invq[2], invq[3])
@@ -443,7 +451,7 @@ def test_euler():
     
 
 #train_two_body("p")
-#train_two_body("q")
+#train_two_body("q",True)
 #test_two_body()
 
 #train_nlp("p")
@@ -455,13 +463,13 @@ def test_euler():
 #test_nlp("q")
 #test_nlp_grad("q")
 
-#test_euler()
+test_euler()
     
 #train_unknown("p")
 #train_unknown("q")
 
 #test_unknown("p")
-test_unknown("q")   
+#test_unknown("q")   
 
 
 

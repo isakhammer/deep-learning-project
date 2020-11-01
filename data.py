@@ -56,11 +56,22 @@ def generate_synthetic_batches(I,func = "2sqr"):
         if I%2 == 1:
             raise Exception("I not even")
             
+        signs = np.array([-1,1])
+        Y = np.random.uniform(high=2, low=1/4, size=(d_0,I))
         
+        for i in range(d_0):
+            for j in range(I):
+                sign = np.random.choice(signs)
+                Y[i,j] = sign*Y[i,j]
+                
+        
+            
+        """
         Y1 = np.random.uniform(high=2, low=1/4, size=(d_0,int(I/2)))
-        Y2 = -np.random.uniform(high=2, low=1/4, size=(d_0,int(I/2)))
+        Y2 = np.random.uniform(high=-1/4, low=-2, size=(d_0,int(I/2)))
         Y = np.append(Y1,Y2,1)
         np.random.shuffle(Y)
+        """
         batch["Y"] = Y
         
         

@@ -295,21 +295,11 @@ def dF_tilde_y2(y, h, th, d_0, d, K):
     
     Z, Upsilon = F_tilde(y, th, d_0, d, K, h)
     
-    
-    dGZK = eta(th["w"][:d_0].T@Z[K][:d_0]+ th["mu"], derivative = True) * th["w"][:d_0]
-    
-    A = dGZK
-    
-    for k in range(K,0,-1):
-        A = A + th["W"][k-1][:d_0,:d_0]@(h*sigma((th["W"][k-1][:d_0,:d_0]@Z[k-1][:d_0] + th["b"][k-1][:d_0]), derivative = True)*A)
-   
-    """
     dGZK = eta(th["w"].T@Z[K]+ th["mu"], derivative = True) * th["w"]
     
     A = dGZK
     for k in range(K,0,-1):
-        A = A + th["W"][k-1]@(h*sigma((th["W"][k-1]@Z[k-1] + th["b"][k-1]), derivative = True)*A)
-    """
+        A = A + th["W"][k-1].T@(h*sigma((th["W"][k-1]@Z[k-1] + th["b"][k-1]), derivative = True)*A)
     
     return A
 
@@ -338,17 +328,17 @@ def s_stormer(p0, q0, thp, thq, hF, K, N, T, invp, invq):
         p[n+1] = phat - h/2*dV
         
         """
-        dVs = dF_tilde_y(q[n], hF, thq, d_0, d, K)
+        dVs = dF_tilde_y2(q[n], hF, thq, d_0, d, K)
         dV = invscaleparameter_no_shift(dVs, invq[0], invq[1], invq[2], invq[3])
         p_hat = p[n] - (h/2)*dV
         
         # 2
-        dTs = dF_tilde_y(p_hat, hF, thp, d_0, d, K)
+        dTs = dF_tilde_y2(p_hat, hF, thp, d_0, d, K)
         dT = invscaleparameter_no_shift(dTs, invp[0], invp[1], invp[2], invp[3])
         q[n+1] = q[n] + h*dT        
         
         # 3
-        dVs = dF_tilde_y( q[n+1], hF, thq, d_0, d, K)
+        dVs = dF_tilde_y2( q[n+1], hF, thq, d_0, d, K)
         dV1 = invscaleparameter_no_shift(dVs, invq[0], invq[1], invq[2], invq[3])
         p[n+1] = p_hat - (h/2)*dV1
         
@@ -383,12 +373,6 @@ def s_euler(p0, q0, thp, thq, hF, K, N, T, invp, invq):
         dVs = dF_tilde_y2(q[n], hF, thq, d_0, d, K)
         dV = invscaleparameter_no_shift(dVs, invq[0], invq[1], invq[2], invq[3])
         
-        """
-        dTs = dF_tilde_y(p[n], hF, thp, d_0, d, K)
-        dT = invscaleparameter_no_shift(dTs, invp[0], invp[1], invp[2], invp[3])
-        dVs = dF_tilde_y(q[n], hF, thq, d_0, d, K)
-        dV = invscaleparameter_no_shift(dVs, invq[0], invq[1], invq[2], invq[3])
-        """
         q[n+1] = q[n] + h*dT[:d_0]
         p[n+1] = p[n] - h*dV[:d_0]
     
