@@ -211,7 +211,7 @@ def train(c, d, d_0, K, h, Y, th, tau=0.0005, max_it=60, print_it=True, method="
         
 def stocgradient(c, d, d_0, K, h, Y, th, tau, max_it , bsize, sifts = 100, save = False, savefile = ""):
     
-    JJ = np.array([])
+    JJ = np.zeros(sifts)
     I = Y.shape[1]
     totitr = int(I/bsize)
     for siftnum in range(sifts):
@@ -225,7 +225,7 @@ def stocgradient(c, d, d_0, K, h, Y, th, tau, max_it , bsize, sifts = 100, save 
         
         Z, Upsilon = F_tilde(Y, th, d_0, d, K, h)
         err = J_func(Upsilon, c)
-        JJ = np.append(JJ, err)
+        JJ[siftnum] = err
         
         if save and siftnum%100 == 0:
             th_file = open(savefile, "wb")
@@ -301,19 +301,19 @@ def dF_tilde_y2(y, h, th, d_0, d, K):
     for k in range(K,0,-1):
         A = A + th["W"][k-1].T@(h*sigma((th["W"][k-1]@Z[k-1] + th["b"][k-1]), derivative = True)*A)
     
-    return A
+    return A[:d_0]
 
-def s_stormer(p0, q0, thp, thq, hF, K, N, T, invp, invq):
+def stormer_verlet(p0, q0, thp, thq, hF, K, N, T, invp, invq):
     
     h = T/N
     
     d_0 = p0.shape[0]
     d = d_0*2
     
-    p = np.zeros((N+1,1,1))
+    p = np.zeros((N+1,d_0,1))
     p[0] = p0
     
-    q = np.zeros((N+1,1,1))
+    q = np.zeros((N+1,d_0,1))
     q[0] = q0
     
     for n in range(N):
@@ -343,10 +343,39 @@ def s_stormer(p0, q0, thp, thq, hF, K, N, T, invp, invq):
         p[n+1] = p_hat - (h/2)*dV1
         
         
-    p = np.reshape(p,N+1)
-    q = np.reshape(q,N+1)
+    p = np.reshape(p,(N+1,d_0))
+    q = np.reshape(q,(N+1,d_0))
     return p,q
+
+
+def stormer_verlet_analytical(p0, q0, N, T,  dT, dV):
     
+    h = T/N
+
+    d_0 = p0.shape[0]
+    d = d_0*2
+    
+    p = np.zeros((N+1,d_0,1))
+    p[0] = p0
+    
+    q = np.zeros((N+1,d_0,1))
+    q[0] = q0
+    
+    for n in range(N):
+        # 1
+        dVq = dV(q[n])
+        phat = p[n] - h/2*dVq
+        dTph = dT(phat)
+        q[n+1] = q[n] + h*dTph
+        dVq = dV(q[n+1])
+        p[n+1] = phat - h/2*dVq
+        
+        
+    p = np.reshape(p,(N+1,d_0))
+    q = np.reshape(q,(N+1,d_0))
+    
+    return p,q
+   
 def s_euler(p0, q0, thp, thq, hF, K, N, T, invp, invq):
     
     

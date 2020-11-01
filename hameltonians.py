@@ -28,7 +28,7 @@ def train_two_body(pq, continue_training = False):
     I = 8000
     K = 20
     h = 0.1
-    sifts = 800
+    sifts = 1000
     Ihat = 400
     tau = 2/Ihat
     
@@ -37,9 +37,9 @@ def train_two_body(pq, continue_training = False):
     
     q =qdata["Y"]
     cq = qdata["c"]
-    scq,invqc = scale(cq, alpha=0.1, beta=0.9)
+    scq,invqc = scale(cq)
     
-    parametersq = scale(cq, alpha=0.1, beta=0.9, returnParameters = True)
+    parametersq = scale(cq, returnParameters = True)
     
     
     
@@ -129,6 +129,111 @@ def test_two_body():
     plt.plot(pc)
     plt.show()
     
+
+
+def model_two_body():
+    
+    K = 20
+    hF = 0.1
+    d_0 = 1
+    d = d_0*2
+    
+    T = 3
+    dt = 1e-4
+    N = int(T/dt)
+    
+    pp_file = open("p_tb_inv.pkl", "rb")
+    invp = pickle.load(pp_file)
+    pp_file.close()
+    
+    qp_file = open("q_tb_inv.pkl", "rb")
+    invq = pickle.load(qp_file)
+    qp_file.close()
+    
+    pw_file = open("p_tb_w.pkl", "rb")
+    thp = pickle.load(pw_file)
+    pw_file.close()
+    
+    qw_file = open("q_tb_w.pkl", "rb")
+    thq = pickle.load(qw_file)
+    qw_file.close()
+    
+    
+    p0 = np.array([0.8,0])[:,np.newaxis]
+    q0 = np.array([0,-1.2])[:,np.newaxis]
+    
+    
+    def dT(p):
+        derr = np.array([p[0],p[1]])
+        return derr
+    
+    def dV(q):
+        derr = np.array([q[0]/(q[0]**2+q[1]**2)**(3/2), q[1]/(q[0]**2+q[1]**2)**(3/2)])
+        return derr
+    
+    #p,q = s_euler(p0, q0, thp, thq, hF, K, N, T, invp, invq)
+    p,q = stormer_verlet(p0, q0, thp, thq, hF, K, N, T, invp, invq)
+    pa,qa = stormer_verlet_analytical(p0, q0, N, T,  dT, dV)
+    
+    print(np.amax(pa))
+    
+    theta = np.linspace(0, 2*np.pi, 100)
+
+    r = 1/4
+
+    x1 = r*np.cos(theta)
+    x2 = r*np.sin(theta)
+    
+    plt.plot(x1,x2, label = "radius")
+    
+    plt.plot(q[:,0],q[:,1],label="q")
+    plt.plot(qa[:,0],qa[:,1],label="qa")
+    plt.legend()
+    plt.show()
+    
+    Tpa = 1/2*pa[:,0]**2 + 1/2*pa[:,1]**2
+    Vqa = -1/np.sqrt(qa[:,0]**2 + qa[:,1]**2)
+    
+    plt.plot(Tpa, label="Ta")
+    plt.plot(Vqa,  label ="Va")
+    plt.plot(Tpa+Vqa, label ="Ta + Va")
+    plt.legend()
+    plt.show()
+    
+    Tp = 1/2*p[:,0]**2 + 1/2*p[:,1]**2
+    Vq = -1/np.sqrt(q[:,0]**2 + q[:,1]**2)
+    
+    plt.plot(Tp, label="T")
+    plt.plot(Vq,  label ="V")
+    plt.plot(Tp+Vq, label ="T + V")
+    plt.legend()
+    plt.show()
+    
+    
+    """
+    plt.plot(p, label="p")
+    plt.plot(q, label="q")
+    plt.legend()
+    plt.show()
+    plt.plot(pa, label="pa")
+    plt.plot(qa, label="qa")
+    plt.legend()
+    plt.show()
+    
+    Tp = 1/2*p**2
+    Vq = 1-np.cos(q)
+    
+    Tpa = 1/2*pa**2
+    Vqa = 1-np.cos(qa)
+    
+    
+    plt.plot(np.reshape(Tp,len(Tp)), label="T")
+    plt.plot(np.reshape(Vq,len(Vq)),  label ="V")
+    plt.plot(Tp+Vq, label ="T + V")
+    plt.legend()
+    plt.show()
+    
+    """
     
     
 def train_nlp(pq):
@@ -262,15 +367,85 @@ def test_nlp_grad(pq):
     
     """
     yhat = dF_tilde_y2(Y, h, th, d_0, d, K)
-    y = invscaleparameter_no_shift(yhat[0], inv[0], inv[1], inv[2], inv[3])
+    y = invscaleparameter_no_shift(yhat, inv[0], inv[1], inv[2], inv[3])
     
     
-    plt.plot(Y.T,y, label ="y")
-    plt.plot(Y.T,c, label ="c")
+    plt.plot(y.T, label ="y")
+    plt.plot(c, label ="c")
     #plt.axhline(y = 0)
     plt.legend()
     plt.show()
 
+
+def model_nlp():
+    
+    K = 20
+    hF = 0.1
+    d_0 = 1
+    d = d_0*2
+    
+    T = 6
+    dt = 1e-3
+    N = int(T/dt)
+    
+    invp_file = open("p_nlp_inv.pkl", "rb")
+    invp = pickle.load(invp_file)
+    invp_file.close()
+    
+    invq_file = open("q_nlp_inv.pkl", "rb")
+    invq = pickle.load(invq_file)
+    invq_file.close()
+    
+    wp_file = open("p_nlp_w.pkl", "rb")
+    thp = pickle.load(wp_file)
+    wp_file.close()
+
+    wq_file = open("q_nlp_w.pkl", "rb")
+    thq = pickle.load(wq_file)
+    wq_file.close()
+    
+    
+    p0 = np.array([0.5])[:,np.newaxis]
+    q0 = np.array([0])[:,np.newaxis]
+    
+    
+    def dT(p):
+        return p
+    
+    def dV(q):
+        return np.sin(q)
+    
+    #p,q = s_euler(p0, q0, thp, thq, hF, K, N, T, invp, invq)
+    p,q = stormer_verlet(p0, q0, thp, thq, hF, K, N, T, invp, invq)
+    pa,qa = stormer_verlet_analytical(p0, q0, N, T,  dT, dV)
+    
+    
+    plt.plot(p, label="p")
+    plt.plot(q, label="q")
+    plt.legend()
+    plt.show()
+    plt.plot(pa, label="pa")
+    plt.plot(qa, label="qa")
+    plt.legend()
+    plt.show()
+    
+    Tp = 1/2*p**2
+    Vq = 1-np.cos(q)
+    
+    Tpa = 1/2*pa**2
+    Vqa = 1-np.cos(qa)
+    
+    
+    plt.plot(np.reshape(Tp,len(Tp)), label="T")
+    plt.plot(np.reshape(Vq,len(Vq)),  label ="V")
+    plt.plot(Tp+Vq, label ="T + V")
+    plt.legend()
+    plt.show()
+    plt.plot(np.reshape(Tpa,len(Tpa)), label="Ta")
+    plt.plot(np.reshape(Vqa,len(Vqa)),  label ="Va")
+    plt.plot(Tpa+Vqa, label ="Ta + Va")
+    plt.legend()
+    plt.show()
 
 def train_unknown(pq):
     
@@ -332,20 +507,6 @@ def test_unknown(pq):
     K = 20
     h = 0.1
     
-    if pq == "p":
-        Y  = np.linspace(-2,2,numData)
-        Y = Y[:,np.newaxis].T
-        c = 1/2*Y**2
-        c = c.T
-        
-    elif pq == "q":
-        Y = np.linspace(-np.pi/3,np.pi/3,numData)
-        Y = Y[:,np.newaxis].T
-        c = 1-np.cos(Y)
-        c = c.T
-    else:
-        raise Exception("p or q")
-    
     
     inv_file = open( pq + "_unknown_inv.pkl", "rb")
     inv = pickle.load(inv_file)
@@ -383,66 +544,7 @@ def test_unknown(pq):
     
     
 
-def test_euler():
-    
-    K = 20
-    hF = 0.1
-    d_0 = 1
-    d = d_0*2
-    
-    T = 4
-    dt = 1e-4
-    N = int(T/dt)
-    
-    invp_file = open("p_nlp_inv.pkl", "rb")
-    invp = pickle.load(invp_file)
-    invp_file.close()
-    
-    invq_file = open("q_nlp_inv.pkl", "rb")
-    invq = pickle.load(invq_file)
-    invq_file.close()
-    
-    wp_file = open("p_nlp_w.pkl", "rb")
-    thp = pickle.load(wp_file)
-    wp_file.close()
 
-    wq_file = open("q_nlp_w.pkl", "rb")
-    thq = pickle.load(wq_file)
-    wq_file.close()
-    
-    
-    p0 = np.array([0.5])[:,np.newaxis]
-    q0 = np.array([0])[:,np.newaxis]
-    
-    
-    #p,q = s_euler(p0, q0, thp, thq, hF, K, N, T, invp, invq)
-    p,q = s_stormer(p0, q0, thp, thq, hF, K, N, T, invp, invq)
-    
-    #p = invscaleparameter_no_shift(p, invp[0], invp[1], invp[2], invp[3])
-    #q = invscaleparameter_no_shift(q, invq[0], invq[1], invq[2], invq[3])
-    
-    plt.plot(p, label="p")
-    plt.plot(q, label="q")
-    #plt.plot(p+q)
-    plt.legend()
-    plt.show()
-    
-    """
-    zp, Tps = F_tilde(p[:,np.newaxis].T, thp, d_0, d, K, hF)
-    zq, Vqs = F_tilde(q[:,np.newaxis].T, thq, d_0, d, K, hF)
-    
-    Tp = invscaleparameter(Tps, invp[0], invp[1], invp[2], invp[3])
-    Vq = invscaleparameter(Vqs, invq[0], invq[1], invq[2], invq[3])
-    """
-    Tp = 1/2*p**2
-    Vq = 1-np.cos(q)
-    
-    
-    plt.plot(np.reshape(Tp,len(Tp)), label="T")
-    plt.plot(np.reshape(Vq,len(Vq)),  label ="V")
-    plt.plot(Tp+Vq, label ="T + V")
-    plt.legend()
-    plt.show()
     
     
 
@@ -451,7 +553,7 @@ def test_euler():
     
 
 #train_two_body("p")
-#train_two_body("q",True)
+#train_two_body("q")
 #test_two_body()
 
 #train_nlp("p")
@@ -463,7 +565,8 @@ def test_euler():
 #test_nlp("q")
 #test_nlp_grad("q")
 
-test_euler()
+#model_nlp()
+model_two_body()
     
 #train_unknown("p")
 #train_unknown("q")

@@ -56,6 +56,22 @@ def generate_synthetic_batches(I,func = "2sqr"):
         if I%2 == 1:
             raise Exception("I not even")
             
+            
+        Y = np.random.uniform(high=2, low=-2, size=(d_0,I))
+        
+        signs = np.array([-1,1])
+        indexes = np.array([0,1])
+        
+        for i in range(I):
+            y = Y[:,i]
+            
+            if np.linalg.norm(y) < 1/4:
+                j = np.random.choice(indexes)
+                sign = np.random.choice(signs)
+                Y[j,i] = Y[j,i] + sign*(1/2)
+            
+            
+        """    
         signs = np.array([-1,1])
         Y = np.random.uniform(high=2, low=1/4, size=(d_0,I))
         
@@ -63,7 +79,7 @@ def generate_synthetic_batches(I,func = "2sqr"):
             for j in range(I):
                 sign = np.random.choice(signs)
                 Y[i,j] = sign*Y[i,j]
-                
+        """         
         
             
         """
