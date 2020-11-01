@@ -209,7 +209,7 @@ def train(c, d, d_0, K, h, Y, th, tau=0.0005, max_it=60, print_it=True, method="
         
     return JJ , th
         
-def stocgradient(c, d, d_0, K, h, Y, th, tau, max_it , bsize, sifts = 100):
+def stocgradient(c, d, d_0, K, h, Y, th, tau, max_it , bsize, sifts = 100, save = False, savefile = ""):
     
     JJ = np.array([])
     I = Y.shape[1]
@@ -226,6 +226,11 @@ def stocgradient(c, d, d_0, K, h, Y, th, tau, max_it , bsize, sifts = 100):
         Z, Upsilon = F_tilde(Y, th, d_0, d, K, h)
         err = J_func(Upsilon, c)
         JJ = np.append(JJ, err)
+        
+        if save and siftnum%100 == 0:
+            th_file = open(savefile, "wb")
+            pickle.dump(th, th_file)
+            th_file.close()
         
         while len(indexes) > 0:
             """
@@ -627,7 +632,7 @@ def main_isak():
     
     
 
-main_magnus()
+#main_magnus()
 #test_weights()
 #main_isak()
 #plt.show()

@@ -268,13 +268,13 @@ def train_unknown(pq):
     
     K = 20
     h = 0.1
-    sifts = 1000
+    sifts = 10000
     Ihat = 2000
     tau = 2/Ihat
     
     batches = import_batches()
     batch1 = batches[0]
-    antB = 3
+    antB = 40
     
     
     bigbatch = {}
@@ -305,7 +305,7 @@ def train_unknown(pq):
     
     th = initialize_weights(d_0, d, K)
     
-    JJ, th = stocgradient(sc, d, d_0, K, h, Y, th, tau, 1 , Ihat, sifts)
+    JJ, th = stocgradient(sc, d, d_0, K, h, Y, th, tau, 1 , Ihat, sifts, True, pq + "_unknown_w.pkl")
     
     plt.plot(JJ)
     plt.yscale("log")
@@ -349,7 +349,7 @@ def test_unknown(pq):
     
     batches = import_batches()
     batch1 = batches[0]
-    antB = 3
+    antB = 49
     
     Y = batch1["Y_q"]
     d_0 = Y.shape[0]
@@ -458,7 +458,10 @@ def test_euler():
 #test_euler()
     
 #train_unknown("p")
-test_unknown("p")   
+#train_unknown("q")
+
+#test_unknown("p")
+test_unknown("q")   
 
 
 
