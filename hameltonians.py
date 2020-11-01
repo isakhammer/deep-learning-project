@@ -451,13 +451,13 @@ def train_unknown(pq):
     
     K = 20
     h = 0.1
-    sifts = 10000
+    sifts = 1000
     Ihat = 2000
     tau = 2/Ihat
     
     batches = import_batches()
     batch1 = batches[0]
-    antB = 40
+    antB = 10
     
     
     bigbatch = {}
@@ -488,7 +488,8 @@ def train_unknown(pq):
     
     th = initialize_weights(d_0, d, K)
     
-    JJ, th = stocgradient(sc, d, d_0, K, h, Y, th, tau, 1 , Ihat, sifts, True, pq + "_unknown_w.pkl")
+    #JJ, th = stocgradient(sc, d, d_0, K, h, Y, th, tau, 1 , Ihat, sifts, True, pq + "_unknown_w.pkl")
+    JJ, th = stocgradient(sc, d, d_0, K, h, Y, th, tau, 1 , Ihat, sifts)
     
     plt.plot(JJ)
     plt.yscale("log")
@@ -502,7 +503,6 @@ def train_unknown(pq):
     
 
 def test_unknown(pq):
-    numData = 2000
     
     K = 20
     h = 0.1
@@ -518,19 +518,99 @@ def test_unknown(pq):
     
     batches = import_batches()
     batch1 = batches[0]
-    antB = 49
+    antB = 10
     
     Y = batch1["Y_q"]
     d_0 = Y.shape[0]
     d = d_0*2
     
     for i in range(antB):
-        plt.title("Batch: " + str(i))
+        plt.title("Batch: " + str(i) + ",   y = F(" + pq +")")
         testbatch = batches[i]
     
         tY = testbatch["Y_"+pq]
-        tc,invt = scale(testbatch["c_"+pq])
         
+        z, yhat = F_tilde(tY, th, d_0, d, K, h)
+        
+        
+        y = invscaleparameter(yhat, inv[0], inv[1], inv[2], inv[3])
+        c = testbatch["c_"+pq]
+        
+        plt.plot(y,label ="y")
+        plt.plot(c,label ="c")
+        plt.legend()
+        plt.show()
+    
+    
+
+
+def model_unknown():   
+    
+    K = 20
+    h = 0.1
+    
+    
+    invp_file = open("p_unknown_inv.pkl", "rb")
+    invp = pickle.load(invp_file)
+    invp_file.close()
+    
+    invq_file = open("q_unknown_inv.pkl", "rb")
+    invq = pickle.load(invq_file)
+    invq_file.close()
+    
+    wp_file = open("p_unknown_w.pkl", "rb")
+    thp = pickle.load(wp_file)
+    wp_file.close()
+
+    wq_file = open("q_unknown_w.pkl", "rb")
+    thq = pickle.load(wq_file)
+    wq_file.close()
+    
+    batches = import_batches()
+    batch1 = batches[0]
+    antB = 10
+    
+    Y = batch1["Y_q"]
+    d_0 = Y.shape[0]
+    d = d_0*2
+    
+    N = Y.shape[1]
+    
+    
+    for i in range(antB):
+        plt.title("Batch: " + str(i))
+        testbatch = batches[i]
+    
+    
+    
+        pa = testbatch["Y_p"]
+        Ta = testbatch["c_p"]
+        qa = testbatch["Y_q"]
+        Va = testbatch["c_q"]
+        
+        
+        
+        
+        plt.plot(np.reshape(Ta,len(Ta)), label="Ta")
+        plt.plot(np.reshape(Va,len(Va)),  label ="Va")
+        plt.plot(Ta+Va, label ="Ta + Va")
+        plt.legend()
+        plt.show()
+        
+        
+        z, yhatp = F_tilde(pa, thp, d_0, d, K, h)
+        Tpa = invscaleparameter(yhatp, invp[0], invp[1], invp[2], invp[3])
+        z, yhatq = F_tilde(qa, thq, d_0, d, K, h)
+        Vqa = invscaleparameter(yhatq, invq[0], invq[1], invq[2], invq[3])
+        
+        plt.plot(np.reshape(Tpa,len(Tpa)), label="Tpa")
+        plt.plot(np.reshape(Vqa,len(Vqa)),  label ="Vqa")
+        plt.plot(Tpa+Vqa, label ="Tpa + Vqa")
+        plt.legend()
+        plt.show()
+        
+        
+        """
         z, yhat = F_tilde(tY, th, d_0, d, K, h)
         
         
@@ -541,13 +621,7 @@ def test_unknown(pq):
         plt.plot(ic,label ="c")
         plt.legend()
         plt.show()
-    
-    
-
-
-    
-    
-
+        """
 
     
     
@@ -566,7 +640,7 @@ def test_unknown(pq):
 #test_nlp_grad("q")
 
 #model_nlp()
-model_two_body()
+#model_two_body()
     
 #train_unknown("p")
 #train_unknown("q")
@@ -574,7 +648,7 @@ model_two_body()
 #test_unknown("p")
 #test_unknown("q")   
 
-
+model_unknown()
 
 
 
