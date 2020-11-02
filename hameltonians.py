@@ -568,16 +568,18 @@ def model_unknown():
     
     batches = import_batches()
     batch1 = batches[0]
-    antB = 10
+    antB = 49
     
     Y = batch1["Y_q"]
     d_0 = Y.shape[0]
     d = d_0*2
     
     N = Y.shape[1]
+    wantedBatches = np.array([4, 46]).astype(int)
     
     
-    for i in range(antB):
+    #for i in range(antB):
+    for i in wantedBatches:
         plt.title("Batch: " + str(i))
         testbatch = batches[i]
     
@@ -598,6 +600,11 @@ def model_unknown():
         plt.show()
         
         
+        
+        
+        
+        
+        
         z, yhatp = F_tilde(pa, thp, d_0, d, K, h)
         Tpa = invscaleparameter(yhatp, invp[0], invp[1], invp[2], invp[3])
         z, yhatq = F_tilde(qa, thq, d_0, d, K, h)
@@ -610,18 +617,22 @@ def model_unknown():
         plt.show()
         
         
-        """
-        z, yhat = F_tilde(tY, th, d_0, d, K, h)
+        dt = testbatch["t"][1]
+        T = dt*N
+        p0 = pa[:,0,np.newaxis]
+        q0 = qa[:,0,np.newaxis]
+        p,q = stormer_verlet(p0, q0, thp, thq, h, K, N, T, invp, invq)
         
+        z, yhatpn = F_tilde(p.T, thp, d_0, d, K, h)
+        Tp = invscaleparameter(yhatpn, invp[0], invp[1], invp[2], invp[3])
+        z, yhatqn = F_tilde(q.T, thq, d_0, d, K, h)
+        Vq = invscaleparameter(yhatqn, invq[0], invq[1], invq[2], invq[3])
         
-        y = invscaleparameter(yhat, inv[0], inv[1], inv[2], inv[3])
-        ic = invt(tc)
-        
-        plt.plot(y,label ="y")
-        plt.plot(ic,label ="c")
+        plt.plot(np.reshape(Tp,len(Tp)), label="Tp")
+        plt.plot(np.reshape(Vq,len(Vq)),  label ="Vq")
+        plt.plot(Tp+Vq, label ="Tp + Vq")
         plt.legend()
         plt.show()
-        """
 
     
     
@@ -645,10 +656,10 @@ def model_unknown():
 #train_unknown("p")
 #train_unknown("q")
 
-test_unknown("p")
-test_unknown("q")   
+#test_unknown("p")
+#test_unknown("q")   
 
-#model_unknown()
+model_unknown()
 
 
 
